@@ -1,0 +1,55 @@
+
+    IsAWord SERVER
+    ==============
+
+1. Dependencies
+---------------
+
+At the present this project depends on libevent v 2.0.10 or higher, 
+Google Sparse Hash Map 1.9 or nigher, and Boost.  As the versions of
+libevent and Sparce Hash Map are fairly recent, it is unlikely that 
+they will be available through apt-get; instead they have
+to be downloaded and compiled manually:
+
+wget http://google-sparsehash.googlecode.com/files/sparsehash-1.9.tar.gz
+tar -xzvf sparsehash-1.9.tar.gz
+cd sparsehash-1.9
+./configure
+make
+sudo make install
+
+wget http://downloads.sourceforge.net/project/levent/libevent/libevent-2.0/libevent-2.0.10-stable.tar.gz?r=&ts=1295317910&use_mirror=voxel
+tar -xzvf libevent-2.0.10-stable.tar.gz
+cd libevent-2.0.10-stable
+./configure
+make
+sudo make install
+
+Don't forget to run ldconfig.
+
+For Boost, version 1.45 was used; however, as Boost is a relatively stable
+library, older versions may work.  To install Boost follow the directions
+on Boost website:
+
+http://www.boost.org/doc/libs/1_45_0/more/getting_started/unix-variants.html
+
+Note that the project depends on compiled portions of Boost, so it will
+be necessary to go through the full installation process.
+
+Note that this project also requres Linux or similar operating system.  It
+has been tested on Ubuntu 10.4; it may work on other *nix OSes.  I'd be shocked
+if it compiles and runs on Windows.
+
+2. Compiling, Running
+---------------------
+To compile, run 'make', or 'make debug'.  The binary should be placed in
+bin/ directory.  As the code is in constant flux at the moment, the reader would
+have to rely on the source code to figure out what exactly the produced
+binary will do.
+
+To compile and run the tests, type in 'make test'.  Note that some tests may
+fail for one reason or another.
+
+
+
+
