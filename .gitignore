@@ -1,0 +1,7 @@
+# Ignore products of compilation.
+*.o
+*.o-*
+bin/
+test/test_isaword
+generator/makewords
+generator/test_makewords
