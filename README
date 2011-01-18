@@ -6,10 +6,10 @@
 ---------------
 
 At the present this project depends on libevent v 2.0.10 or higher, 
-Google Sparse Hash Map 1.9 or nigher, and Boost.  As the versions of
-libevent and Sparce Hash Map are fairly recent, it is unlikely that 
-they will be available through apt-get; instead they have
-to be downloaded and compiled manually:
+Google Sparse Hash Map 1.9 or nigher, and Boost (built with 1.45, but may
+work with older versions).  As the versions of libevent and Sparce Hash 
+Map are fairly recent, it is unlikely that they will be available through 
+apt-get; instead they have to be downloaded and compiled manually:
 
 wget http://google-sparsehash.googlecode.com/files/sparsehash-1.9.tar.gz
 tar -xzvf sparsehash-1.9.tar.gz
