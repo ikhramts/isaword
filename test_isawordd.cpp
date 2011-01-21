@@ -20,19 +20,26 @@
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE isaword_server
 
+#include <fstream>
 #include <sstream>
 #include <vector>
 #include <string>
-#include <boost/test/unit_test.hpp>
-#include <boost/shared_ptr.hpp>
+#include <unistd.h>
+#include <boost/filesystem.hpp>
 #include <boost/regex.hpp>
 #include <boost/regex/pattern_except.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/shared_array.hpp>
+#include <boost/test/unit_test.hpp>
 #include "http_utils.h"
 #include "http_server.h"
 #include "file_handler.h"
+#include "file_cache.h"
 
 using namespace isaword;
 using boost::shared_ptr;
+using boost::shared_array;
+using namespace boost::filesystem;
 /*---------------------------------------------------------
                     http_utils tests.
 ----------------------------------------------------------*/
@@ -364,6 +371,8 @@ BOOST_AUTO_TEST_CASE(read_directory) {
     BOOST_CHECK_EQUAL(strcmp(buffer, ""), 0);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
+
 /* ============ is_permitted_file_path tests ==============*/
 BOOST_FIXTURE_TEST_SUITE(FileHandler_is_permitted_file_path_tests, FileHandlerWithRootFixture)
 
@@ -492,8 +501,237 @@ BOOST_AUTO_TEST_CASE(bad_path13) {
 
 BOOST_AUTO_TEST_SUITE_END()
 
+/*---------------------------------------------------------
+                 Fixture for cache tests.
+----------------------------------------------------------*/
+class FileCacheFixture {
+public:
 
+    FileCacheFixture() {
+        // Initialize the main variables.
+        starting_data = "cNlrkY2U4ZSKg5O83yQy";
+        new_data = "Ceg0zBB8qY";
+        file_name = "cache_test";
+        
+        data = shared_array<char>(new char[4]);
+        data_size = 4;
+        
+        //Create the file to test.
+        remove(file_name);
+        file.open(file_name.c_str());
+        file << starting_data;
+        file.close();
+    }
+    
+    ~FileCacheFixture() {
+        remove(file_name);
+    }
+    
+    std::string starting_data;
+    std::string new_data;
+    static const size_t starting_data_size = 20;
+    static const size_t new_data_size = 10;
+    std::string file_name;
+    std::ofstream file;
+    
+    shared_array<char> data;
+    size_t data_size;
+    shared_array<char> empty_ptr;
+    
+    FileCache file_cache;
+};
+
+const size_t FileCacheFixture::starting_data_size;
+const size_t FileCacheFixture::new_data_size;
+
+/*---------------------------------------------------------
+                    CachedFile tests.
+----------------------------------------------------------*/
+BOOST_FIXTURE_TEST_SUITE(CachedFile_tests, FileCacheFixture)
+
+BOOST_AUTO_TEST_CASE(constructor) {
+    CachedFile cached_file("blah");
+    
+    BOOST_CHECK_EQUAL(cached_file.file_path(), "blah");
+    BOOST_CHECK_EQUAL(cached_file.expiration_period(), CachedFile::kDefaultExpirationPeriod);
+}
+
+BOOST_AUTO_TEST_CASE(constructor_with_cache_period) {
+    CachedFile cached_file("blah", 0);
+    
+    BOOST_CHECK_EQUAL(cached_file.file_path(), "blah");
+    BOOST_CHECK_EQUAL(cached_file.expiration_period(), 0);
+}
+
+BOOST_AUTO_TEST_CASE(get_nonexistent_file) {
+    CachedFile cached_file("no_such_file");
+    
+    BOOST_CHECK(!cached_file.get(data, data_size));
+    BOOST_CHECK_EQUAL(data, empty_ptr);
+    BOOST_CHECK_EQUAL(data_size, 0);
+}
+
+BOOST_AUTO_TEST_CASE(get_file) {
+    CachedFile cached_file(file_name);
+
+    BOOST_CHECK(cached_file.get(data, data_size));
+    BOOST_REQUIRE_NE(data, empty_ptr);
+    BOOST_REQUIRE_EQUAL(data_size, starting_data_size);
+    BOOST_CHECK_EQUAL(memcmp(starting_data.c_str(), data.get(), starting_data_size), 0);
+    
+    BOOST_CHECK_EQUAL(data[data_size], '\0');
+}
+
+BOOST_AUTO_TEST_CASE(get_file_from_cache) {
+    CachedFile cached_file(file_name);
+
+    //Load the file to cache
+    BOOST_CHECK(cached_file.get(data, data_size));
+    
+    //Rewrite the file.
+    remove(file_name);
+    file.open(file_name.c_str());
+    file << new_data;
+    file.close();
+    
+    //Load the data again.  Sould still be old data.
+    BOOST_CHECK(cached_file.get(data, data_size));
+    BOOST_REQUIRE_NE(data, empty_ptr);
+    BOOST_REQUIRE_EQUAL(data_size, starting_data_size);
+    BOOST_CHECK_EQUAL(memcmp(starting_data.c_str(), data.get(), starting_data_size), 0);
+}
+
+BOOST_AUTO_TEST_CASE(get_expired_file) {
+    //File is modified after loading, and the cache has expired.
+    CachedFile cached_file(file_name, 0);
+
+    //Load the file to cache
+    BOOST_CHECK(cached_file.get(data, data_size));
+    sleep(2);
+    
+    //Rewrite the file.
+    remove(file_name);
+    file.open(file_name.c_str());
+    file << new_data;
+    file.close();
+    
+    //Load the data again.  Sould still be old data.
+    BOOST_CHECK(cached_file.get(data, data_size));
+    BOOST_REQUIRE_NE(data, empty_ptr);
+    BOOST_REQUIRE_EQUAL(data_size, new_data_size);
+    BOOST_CHECK_EQUAL(memcmp(new_data.c_str(), data.get(), new_data_size), 0);
+}
+
+BOOST_AUTO_TEST_CASE(get_deleted_file) {
+    //Cache has expired and the file was deleted.
+    CachedFile cached_file(file_name, 0);
+
+    //Load the file to cache
+    BOOST_CHECK(cached_file.get(data, data_size));
+    
+    //Rewrite the file.
+    sleep(2);
+    remove(file_name);
+    
+    //Load the data again.  Sould still be old data.
+    BOOST_CHECK(!cached_file.get(data, data_size));
+    BOOST_CHECK_EQUAL(data, empty_ptr);
+    BOOST_CHECK_EQUAL(data_size, 0);
+}
 
 BOOST_AUTO_TEST_SUITE_END()
+
+/*---------------------------------------------------------
+                    FileCache tests.
+----------------------------------------------------------*/
+BOOST_FIXTURE_TEST_SUITE(FileCache_tests, FileCacheFixture)
+
+BOOST_AUTO_TEST_CASE(get_nonexistent_file) {
+    BOOST_CHECK(!file_cache.get("no_such_file", data, &data_size));
+    BOOST_CHECK_EQUAL(data, empty_ptr);
+    BOOST_CHECK_EQUAL(data_size, 0);
+}
+
+BOOST_AUTO_TEST_CASE(get_nonexistent_file_no_data_size) {
+    BOOST_CHECK(!file_cache.get("no_such_file", data));
+    BOOST_CHECK_EQUAL(data, empty_ptr);
+}
+
+BOOST_AUTO_TEST_CASE(get_file) {
+    BOOST_CHECK(file_cache.get(file_name, data, &data_size));
+    BOOST_REQUIRE_NE(data, empty_ptr);
+    BOOST_REQUIRE_EQUAL(data_size, starting_data_size);
+    BOOST_CHECK_EQUAL(memcmp(starting_data.c_str(), data.get(), starting_data_size), 0);
+    
+    BOOST_CHECK_EQUAL(data[data_size], '\0');
+}
+
+BOOST_AUTO_TEST_CASE(get_file_no_data_size) {
+    BOOST_CHECK(file_cache.get(file_name, data));
+    BOOST_REQUIRE_NE(data, empty_ptr);
+    BOOST_CHECK_EQUAL(memcmp(starting_data.c_str(), data.get(), starting_data_size), 0);
+    
+    BOOST_CHECK_EQUAL(data[starting_data_size], '\0');
+}
+
+BOOST_AUTO_TEST_CASE(get_file_from_cache) {
+    //Load the file to cache
+    file_cache.get(file_name, data, &data_size);
+    
+    //Rewrite the file.
+    remove(file_name);
+    file.open(file_name.c_str());
+    file << new_data;
+    file.close();
+    
+    //Load the data again.  Sould still be old data.
+    BOOST_CHECK(file_cache.get(file_name, data, &data_size));
+    BOOST_REQUIRE_NE(data, empty_ptr);
+    BOOST_REQUIRE_EQUAL(data_size, starting_data_size);
+    BOOST_CHECK_EQUAL(memcmp(starting_data.c_str(), data.get(), starting_data_size), 0);
+}
+
+BOOST_AUTO_TEST_CASE(get_expired_file) {
+    //File is modified after loading, and the cache has expired.
+    //Load the file to cache
+    file_cache.set_expiration_period(0);
+    file_cache.get(file_name, data, &data_size);
+    sleep(2);
+    
+    //Rewrite the file.
+    remove(file_name);
+    file.open(file_name.c_str());
+    file << new_data;
+    file.close();
+    
+    //Load the data again.  Sould still be old data.
+    BOOST_CHECK(file_cache.get(file_name, data, &data_size));
+    BOOST_REQUIRE_NE(data, empty_ptr);
+    BOOST_REQUIRE_EQUAL(data_size, new_data_size);
+    BOOST_CHECK_EQUAL(memcmp(new_data.c_str(), data.get(), new_data_size), 0);
+}
+
+BOOST_AUTO_TEST_CASE(get_deleted_file) {
+    //Cache has expired and the file was deleted.
+    //Load the file to cache
+    file_cache.set_expiration_period(0);
+    file_cache.get(file_name, data, &data_size);
+    
+    //Rewrite the file.
+    sleep(2);
+    remove(file_name);
+    
+    //Load the data again.  Sould still be old data.
+    BOOST_CHECK(!file_cache.get(file_name, data, &data_size));
+    BOOST_CHECK_EQUAL(data, empty_ptr);
+    BOOST_CHECK_EQUAL(data_size, 0);
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+
+/*---------------------------------------------------------
+                    WordPicker tests.
+----------------------------------------------------------*/
+
 
 

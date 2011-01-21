@@ -17,21 +17,113 @@
  */
 
 // This file defines handlers for various web pages.
+// Much of the work done here would be better accomplished
+// by a templating engine.  However, I could not find a 
+// good C++ templating engine, and there isn't that much
+// work to do, so may as well do it the simple way.
 
 #ifndef ISAWORD_VIEWS_H
 #define ISAWORD_VIEWS_H
 
 #include <string>
 #include <vector>
+#include <boost/shared_ptr.hpp>
+#include <boost/shared_array.hpp>
+#include <event2/event.h>
+#include <event2/http.h>
 
 struct evhttp_request;
 
 namespace isaword {
 
-/// Get the main page.
-void main_page(struct evhttp_request* request, void* /*nothin'*/);
+class HttpServer;
+class FileCache;
 
+class PageHandler {
+public:
+    /**
+     * Construct an instance of PageHandler.
+     */
+    PageHandler(const boost::shared_ptr<HttpServer>& server)
+    : server_(server),
+      template_root_(""),
+      page_buffer_size_(kDefaultPageBufferSize){
+    }
+    
+    /**
+     * Initialize.
+     * Returns true if there were no problems; false if the initialization
+     * failed.
+     */
+    bool initialize();
+    
+    /*================ Page request handlers =====================*/
+    /**
+     * Load the main page.
+     */
+    static void main_page(struct evhttp_request* request, void* page_handler_ptr);
+    
+    /**
+     * Load the About page.
+     */
+    static void about(struct evhttp_request* request, void* page_handler_ptr);
+    
+    /**
+     * Load the Fine Print.
+     */
+    static void fine_print(struct evhttp_request* request, void* page_handler_ptr);
+    
+    /**
+     * Load the words to guess.
+     */
+    static void words(struct evhttp_request* request, void* page_handler_ptr);
+    
+    /**
+     * 404 Not Found page.
+     */
+    static void not_found(struct evhttp_request* request, void* page_handler_ptr);
+    
+    /*================ Useful functions =====================*/
+    /**
+     * Get the JSON object associated with the words to guess.
+     * Returns an string containing a JSON object, some of which
+     * would be real (in that case they'd have a definition as well),
+     * and some of which would be fake.
+     */
+    std::string make_words_to_guess(const std::string& template_path);
+    
+    /*================ Getters/setters =====================*/
+    /// Get the HttpServer instance associated with this
+    /// object.
+    boost::shared_ptr<HttpServer> server() const    {return server_;}
+    
+private:
+    /// Default size of the page buffer.
+    static const size_t kDefaultPageBufferSize = 51200; //50 kB
+    
+    /// Ensure that the page buffer can fit the page to be generated.
+    void reserve_page_buffer(size_t bytes);
+    
+    /// Convert a template path to the path relative to the executable.
+    std::string template_path(const std::string& path) {
+        return template_root_ + path;
+    }
 
+    /// The main server responsible for the requests and responses.
+    boost::shared_ptr<HttpServer> server_;
+    
+    /// All template paths will be resolved relative to this path.
+    std::string template_root_;
+    
+    /// Template cache.
+    boost::shared_ptr<FileCache> template_cache_;
+
+    /// A place to temporarily generate web pages.
+    boost::shared_array<char> page_buffer_;
+    
+    /// Size of the page buffer.
+    size_t page_buffer_size_;
+};
 
 } /* namespace isaword */
 

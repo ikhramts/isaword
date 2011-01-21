@@ -20,19 +20,25 @@
 #include <boost/shared_ptr.hpp>
 #include "http_server.h"
 #include "file_handler.h"
+#include "views.h"
 
 using boost::shared_ptr;
 using namespace isaword;
 
 int main() {
-    //Set up a simple file server.
+    // Set up a simple server.
     shared_ptr<HttpServer> server(new HttpServer());
     server->initialize();
     
+    // This part of the server is responsible for loading files.
     shared_ptr<FileHandler> file_handler(new FileHandler());
     file_handler->initialize(".");
     file_handler->attach_to_server(server, "/t/");
     file_handler->set_cache_control("public, max-age=0");
+    
+    //Add some pages to the server.
+    shared_ptr<PageHandler> page_handler(new PageHandler(server));
+    page_handler->initialize();
     
     server->serve("0.0.0.0", 5574);
     return 0;

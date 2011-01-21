@@ -26,13 +26,13 @@ TEST_DIR := test
 
 # --- Main components.
 BIN := isawordd
-SRC := http_server.cpp http_utils.cpp file_handler.cpp views.cpp
+SRC := http_server.cpp http_utils.cpp file_handler.cpp views.cpp file_cache.cpp word_picker.cpp
 
 # --- Settings
 CFLAGS := -W -Wall -g -L$(BOOST_LIB_DIR)
 LDFLAGS := -Wall
 LIBS := -lboost_regex $(LIBEVENT)
-TEST_LIB := -lboost_unit_test_framework
+TEST_LIBS := -lboost_unit_test_framework -lboost_filesystem
 
 # --- Ingredients
 TEST_BIN := $(TEST_DIR)/test_$(BIN)
@@ -59,12 +59,12 @@ build: $(OBJS) $(MAIN_OBJ)
 # Release:
 release: $(CFLAGS) += -O2
 release: $(LDFLAGS) += -O2
-release: clean build
+release: build
 
 # Debug:
 debug: CFLAGS += -O0
 debug: LDFLAGS += -O0
-debug: clean build
+debug: build
 
 # Test:
 test: CFLAGS += -O2
@@ -76,10 +76,10 @@ test_debug: LDFLAGS += -O0
 test_debug: build_test run_test
 
 build_test: $(OBJS) $(TEST_OBJ)
-	$(CXX) -o $(TEST_BIN) $(CFLAGS) $(OBJS) $(TEST_OBJ) $(LIBS) $(TEST_LIB)
+	$(CXX) -o $(TEST_BIN) $(CFLAGS) $(OBJS) $(TEST_OBJ) $(LIBS) $(TEST_LIBS)
 
 run_test:
 	@echo ==================================
 	@echo Running tests
 	@echo ==================================
-	$(TEST_BIN)
+	cd $(TEST_DIR);./test_$(BIN)
