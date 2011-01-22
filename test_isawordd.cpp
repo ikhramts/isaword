@@ -35,6 +35,7 @@
 #include "http_server.h"
 #include "file_handler.h"
 #include "file_cache.h"
+#include "word_picker.h"
 
 using namespace isaword;
 using boost::shared_ptr;
@@ -730,8 +731,52 @@ BOOST_AUTO_TEST_CASE(get_deleted_file) {
 BOOST_AUTO_TEST_SUITE_END()
 
 /*---------------------------------------------------------
+                    WordIndexDescription class.
+----------------------------------------------------------*/
+class WordIndexDescriptionFixture {
+public:
+    WordIndexDescriptionFixture() {
+        index_description = 
+            shared_ptr<WordIndexDescription>(new WordIndexDescription("index", 
+                                                                      "Some Index",
+                                                                      "^.*Z.*$"));
+    }
+    
+    shared_ptr<WordIndexDescription> index_description;
+
+};
+
+BOOST_FIXTURE_TEST_SUITE(WordIndexDescription_tests, WordIndexDescriptionFixture)
+
+BOOST_AUTO_TEST_CASE(initialization_test) {
+    BOOST_CHECK_EQUAL(index_description->name(), "index");
+    BOOST_CHECK_EQUAL(index_description->description(), "Some Index");
+}
+
+BOOST_AUTO_TEST_CASE(word_sorting_test) {
+    BOOST_CHECK(index_description->should_be_indexed("BAAZAAR"));
+    BOOST_CHECK(!index_description->should_be_indexed("HELLO"));
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+
+/*---------------------------------------------------------
                     WordPicker tests.
 ----------------------------------------------------------*/
+class WordPickerFixture {
+public:
+    WordPickerFixture() {
+        word_picker = shared_ptr<WordPicker>(new WordPicker());
+    }
+    
+    shared_ptr<WordPicker> word_picker;
+    
+};
+
+BOOST_FIXTURE_TEST_SUITE(WordPicker_tests, FileCacheFixture)
 
 
+
+
+BOOST_AUTO_TEST_SUITE_END()
 

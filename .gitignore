@@ -2,6 +2,6 @@
 *.o
 *.o-*
 bin/
-test/test_isaword
+test/test_isawordd
 generator/makewords
 generator/test_makewords

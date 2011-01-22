@@ -26,7 +26,8 @@ TEST_DIR := test
 
 # --- Main components.
 BIN := isawordd
-SRC := http_server.cpp http_utils.cpp file_handler.cpp views.cpp file_cache.cpp word_picker.cpp
+SRC := http_server.cpp http_utils.cpp file_handler.cpp views.cpp \
+       file_cache.cpp word_picker.cpp generator/pseudoword_generator.cpp
 
 # --- Settings
 CFLAGS := -W -Wall -g -L$(BOOST_LIB_DIR)
