@@ -38,6 +38,8 @@ namespace isaword {
 
 class HttpServer;
 class FileCache;
+class WordPicker;
+class WordIndexDescription;
 
 class PageHandler {
 public:
@@ -123,6 +125,12 @@ private:
     
     /// Size of the page buffer.
     size_t page_buffer_size_;
+    
+    /// An object to pick lists of words to guess.
+    boost::shared_ptr<WordPicker> word_picker_;
+    
+    /// A list of indexes for words.
+    std::vector<boost::shared_ptr<WordIndexDescription> > index_descriptions_;
 };
 
 } /* namespace isaword */

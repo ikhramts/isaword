@@ -55,6 +55,11 @@ bool PageHandler::initialize() {
     template_cache_ = boost::shared_ptr<FileCache>(new FileCache());
     page_buffer_ = shared_array<char>(new char[page_buffer_size_]);
     
+    // Create the descriptions of lists of words to keep track of.
+    
+    
+    //Create the word picker.
+    
     //Attach to the server.
     server_->add_url_handler("/", &main_page, (void*) this);
     return true;

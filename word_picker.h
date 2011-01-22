@@ -37,7 +37,7 @@
 
 namespace isaword {
 
-typedef std::pair<std::string, std::string> WordDefinition;
+//typedef std::pair<std::string, std::string> WordDefinition;
 
 /*---------------------------------------------------------
                     WordDescription class.
@@ -52,7 +52,7 @@ public:
     bool is_real;
 };
 
-typedef boost::shared_ptr<WordDescription> WordDescriptionPtr;
+typedef boost::shared_ptr<WordDescription> WordDescriptionPtr ;
 class WordIndexDescription;
 
 /*---------------------------------------------------------
@@ -64,21 +64,22 @@ class WordIndexDescription;
  */
 class WordPicker {
 public:
+    //Typedefs.
+    typedef std::vector<boost::shared_ptr<WordIndexDescription> > IndexDescriptionList;
+    typedef std::vector<std::vector<WordDescriptionPtr> > IndexList;
+    
     // Word index types.
-    static const size_t ALL_VOWELS          = 0;
-    static const size_t ALL_CONSONANTS      = 1;
-    static const size_t ALL_VOWELS_BUT_ONE  = 2;
-    static const size_t Q_WORDS             = 3;
-    static const size_t Z_WORDS             = 4;
-    static const size_t X_WORDS             = 5;
-    static const size_t J_WORDS             = 6;
+    static const size_t kMinWordLength = 2;
+    static const size_t kMaxWordLength = 15;
 
     WordPicker(const std::vector<boost::shared_ptr<WordIndexDescription> >& index_descriptions)
     : index_descriptions_(index_descriptions),
       pseudoword_generator_(new makewords::PseudowordGenerator("ABCDEFGHIJKLMNOPQRSTUVWXYZ")),
       random_numbers_generator_(time(0)),
       uniform_01_(),
-      random_01_(random_numbers_generator_, uniform_01_) {
+      random_01_(random_numbers_generator_, uniform_01_),
+      max_word_length_(kMaxWordLength),
+      min_word_length_(kMinWordLength){
     }
     
     /**
@@ -102,6 +103,19 @@ public:
      */
     std::vector<WordDescriptionPtr> get_words_from_index(size_t index, size_t num_words);
     
+    /*==================== Getters/setters ======================*/
+    /// Get all words by length.
+    std::vector<WordDescriptionPtr>& words_by_length()      {return words_by_length_;}
+    
+    /// Get the endings of the groups of words of a given length.
+    std::vector<size_t> word_length_ends() const            {return word_length_ends_;}
+    
+    /// Get the word index descriptions.
+    IndexDescriptionList index_description() const          {return index_descriptions_;}
+    
+    /// Get the contents of the word indexes.
+    IndexList& indexes()                                    {return indexes_;}
+    
 private:
     /// Main list of words by length.
     std::vector<WordDescriptionPtr> words_by_length_;
@@ -110,10 +124,10 @@ private:
     std::vector<size_t> word_length_ends_;
     
     /// Descriptions of the indexes to be tracked.
-    std::vector<boost::shared_ptr<WordIndexDescription> > index_descriptions_;
+    IndexDescriptionList index_descriptions_;
     
     /// Other word indexes.
-    std::vector<std::vector<WordDescriptionPtr> > indexes_;
+    IndexList indexes_;
     
     /// Pseudoword generator.
     boost::shared_ptr<makewords::PseudowordGenerator> pseudoword_generator_;
@@ -126,6 +140,15 @@ private:
     
     /// The main generator.
     mutable boost::variate_generator<boost::mt19937&, boost::uniform_01<> > random_01_;
+    
+    /// Regex expressions to use for word length checks when generating pseudowords.
+    std::vector<boost::regex> word_length_patterns_;
+    
+    /// Maximum possible length of words to be tracked.
+    size_t max_word_length_;
+
+    /// Minimum possible length of words to be tracked.
+    size_t min_word_length_;
 };
 
 /*---------------------------------------------------------
@@ -152,6 +175,9 @@ public:
     
     /// Get the index description.
     std::string description() const     {return description_;}
+    
+    /// Get the index pattern.
+    boost::regex& pattern()              {return pattern_;}
     
 private:
     /// Name/id of the index (e.g. "q_words").

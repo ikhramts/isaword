@@ -766,16 +766,85 @@ BOOST_AUTO_TEST_SUITE_END()
 class WordPickerFixture {
 public:
     WordPickerFixture() {
-        word_picker = shared_ptr<WordPicker>(new WordPicker());
+        // Create the index descriptions.
+        shared_ptr<WordIndexDescription> a_words(new WordIndexDescription("a", "a", ".*A.*"));
+        shared_ptr<WordIndexDescription> ends_with_s(new WordIndexDescription("-a", "-s", ".*S$"));
+        std::vector<shared_ptr<WordIndexDescription> > index_descriptions;
+        index_descriptions.push_back(a_words);
+        index_descriptions.push_back(ends_with_s);
+        
+        //Create the word picker.
+        word_picker = shared_ptr<WordPicker>(new WordPicker(index_descriptions));
+        word_picker->initialize("testing/simple_dictionary.txt");
     }
     
     shared_ptr<WordPicker> word_picker;
+    WordDescriptionPtr empty_ptr;
     
 };
 
-BOOST_FIXTURE_TEST_SUITE(WordPicker_tests, FileCacheFixture)
+BOOST_FIXTURE_TEST_SUITE(WordPicker_tests, WordPickerFixture)
 
-
+BOOST_AUTO_TEST_CASE(initialization_test) {
+    WordPicker::IndexList& indexes = word_picker->indexes();
+    std::vector<WordDescriptionPtr>& words_by_length = word_picker->words_by_length();
+    
+    //Check the contents of the words_by_length.
+    BOOST_REQUIRE_EQUAL(words_by_length.size(), 9);
+    
+    for(size_t i = 0; i < words_by_length.size(); i++) {
+        BOOST_REQUIRE_NE(words_by_length[i], empty_ptr);
+    }
+    
+    BOOST_CHECK_EQUAL(words_by_length[0]->word, "BE");
+    BOOST_CHECK_EQUAL(words_by_length[1]->word, "BI");
+    BOOST_CHECK_EQUAL(words_by_length[2]->word, "AAH");
+    BOOST_CHECK_EQUAL(words_by_length[3]->word, "AAL");
+    BOOST_CHECK_EQUAL(words_by_length[4]->word, "AAS");
+    BOOST_CHECK_EQUAL(words_by_length[5]->word, "FEMS");
+    BOOST_CHECK_EQUAL(words_by_length[6]->word, "FEND");
+    BOOST_CHECK_EQUAL(words_by_length[7]->word, "HUIC");
+    BOOST_CHECK_EQUAL(words_by_length[8]->word, "PAMS");
+    
+    BOOST_CHECK_EQUAL(words_by_length[0]->description, "to have actuality");
+    BOOST_CHECK_EQUAL(words_by_length[1]->description, "a bisexual");
+    BOOST_CHECK_EQUAL(words_by_length[2]->description, "to exclaim in amazement, joy, or surprise");
+    BOOST_CHECK_EQUAL(words_by_length[3]->description, "an East Indian shrub");
+    BOOST_CHECK_EQUAL(words_by_length[4]->description, "(see aa)");
+    BOOST_CHECK_EQUAL(words_by_length[5]->description, "(see fem)");
+    BOOST_CHECK_EQUAL(words_by_length[6]->description, "to ward off");
+    BOOST_CHECK_EQUAL(words_by_length[7]->description, "used to encourage hunting hounds");
+    BOOST_CHECK_EQUAL(words_by_length[8]->description, "(see pam)");
+    
+    // Check endings of size groups.
+    std::vector<size_t> word_length_ends = word_picker->word_length_ends();
+    
+    BOOST_REQUIRE_EQUAL(word_length_ends.size(), 5);
+    BOOST_CHECK_EQUAL(word_length_ends[0], 0);
+    BOOST_CHECK_EQUAL(word_length_ends[1], 0);
+    BOOST_CHECK_EQUAL(word_length_ends[2], 2);
+    BOOST_CHECK_EQUAL(word_length_ends[3], 5);
+    BOOST_CHECK_EQUAL(word_length_ends[4], 9);
+    
+    // Check the contents of the indexes.
+    BOOST_REQUIRE_EQUAL(indexes.size(), 2);
+    BOOST_REQUIRE_EQUAL(indexes[0].size(), 4);
+    BOOST_REQUIRE_EQUAL(indexes[1].size(), 3);
+    
+    for (size_t i = 0; i < indexes.size(); i++) {
+        for (size_t j = 0; j < indexes[i].size(); j++) {
+            BOOST_REQUIRE_NE(indexes[i][j], empty_ptr);
+        }
+    }
+    
+    BOOST_CHECK_EQUAL(indexes[0][0]->word, "AAH");
+    BOOST_CHECK_EQUAL(indexes[0][1]->word, "AAL");
+    BOOST_CHECK_EQUAL(indexes[0][2]->word, "AAS");
+    BOOST_CHECK_EQUAL(indexes[0][3]->word, "PAMS");
+    BOOST_CHECK_EQUAL(indexes[1][0]->word, "AAS");
+    BOOST_CHECK_EQUAL(indexes[1][1]->word, "FEMS");
+    BOOST_CHECK_EQUAL(indexes[1][2]->word, "PAMS");
+}
 
 
 BOOST_AUTO_TEST_SUITE_END()
