@@ -18,11 +18,12 @@
 
 // This is the header for the module responsible for picking
 // lists of fake and real words to be guessed.
+#include <iostream>
+#include <fstream>
 #include <string>
 #include <sstream>
 #include <vector>
 #include <utility>
-#include <fstream>
 
 #include <boost/random.hpp>
 #include <boost/random/mersenne_twister.hpp>
@@ -142,7 +143,7 @@ std::vector<WordDescriptionPtr> WordPicker::get_words_by_length(size_t from,
     words.reserve(num_words);
     
     // Find the range of real words to pick from.
-    const size_t first_possible_word = word_length_ends_[from];
+    const size_t first_possible_word = word_length_ends_[from - 1];
     const size_t end_of_possible_words = word_length_ends_[to];
     const size_t num_possible_words = end_of_possible_words - first_possible_word;
     

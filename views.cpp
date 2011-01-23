@@ -21,10 +21,12 @@
 #include <errno.h>
 #include <sys/stat.h>
 
+#include <algorithm>
 #include <fstream>
 #include <string>
 #include <vector>
 
+#include <boost/lexical_cast.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/shared_array.hpp>
 #include <boost/regex.hpp>
@@ -40,9 +42,12 @@
 #include "http_server.h"
 #include "http_utils.h"
 #include "file_cache.h"
+#include "word_picker.h"
 
 using boost::shared_ptr;
 using boost::shared_array;
+using boost::lexical_cast;
+using boost::bad_lexical_cast;
 
 namespace isaword {
 
@@ -56,18 +61,48 @@ bool PageHandler::initialize() {
     page_buffer_ = shared_array<char>(new char[page_buffer_size_]);
     
     // Create the descriptions of lists of words to keep track of.
+    shared_ptr<WordIndexDescription> j_words(
+        new WordIndexDescription("j_words", "J words", "^.*J.*$"));
+    shared_ptr<WordIndexDescription> q_words(
+        new WordIndexDescription("q_words", "Q words", ".*Q.*"));
+    shared_ptr<WordIndexDescription> q_witout_u_words(
+        new WordIndexDescription("q_withoutt_u_words", "Q words", "^(.*Q[^U].*)|(.*Q)$"));
+    shared_ptr<WordIndexDescription> x_words(
+        new WordIndexDescription("x_words", "X words", "^.*X.*$"));
+    shared_ptr<WordIndexDescription> z_words(
+        new WordIndexDescription("z_words", "Z words", "^.*Z.*$"));
+    shared_ptr<WordIndexDescription> consonants(
+        new WordIndexDescription("consonants", "Consonants Only", "^[^AEIOU]*$"));
+    shared_ptr<WordIndexDescription> all_vowels_but_one(
+        new WordIndexDescription("all_vowels_but_one", "All vowels but one", "^[AEIOU]*[^AEIOU][AEIOU]*$"));
+    shared_ptr<WordIndexDescription> out_words(
+        new WordIndexDescription("out_words", "OUT- words", "^OUT.*$"));
+    shared_ptr<WordIndexDescription> re_words(
+        new WordIndexDescription("re_words", "RE- words", "^RE.*$"));
     
+    index_descriptions_.push_back(j_words);
+    index_descriptions_.push_back(q_words);
+    index_descriptions_.push_back(q_witout_u_words);
+    index_descriptions_.push_back(x_words);
+    index_descriptions_.push_back(z_words);
+    index_descriptions_.push_back(consonants);
+    index_descriptions_.push_back(all_vowels_but_one);
+    index_descriptions_.push_back(out_words);
+    index_descriptions_.push_back(re_words);
     
     //Create the word picker.
+    word_picker_ = shared_ptr<WordPicker>(new WordPicker(index_descriptions_));
+    bool has_initialized_word_picker = word_picker_->initialize("dictionaries/owl2.txt");
     
     //Attach to the server.
     server_->add_url_handler("/", &main_page, (void*) this);
-    return true;
+    server_->add_url_handler("/words/[a-z0-9/_]+", &words, (void*) this);
+    return has_initialized_word_picker;
 }
 
 /*================ Page request handlers =====================*/
 /**
- * Load the main page.
+ * Display the main page.
  */
 void PageHandler::main_page(struct evhttp_request* request, void* page_handler_ptr) {
     PageHandler* this_ = (PageHandler*) page_handler_ptr;
@@ -88,28 +123,37 @@ void PageHandler::main_page(struct evhttp_request* request, void* page_handler_p
 }
 
 /**
- * Load the About page.
+ * Display the About page.
  */
 void PageHandler::about(struct evhttp_request* request, void* page_handler_ptr) {
     //TODO: implement.
 }
 
 /**
- * Load the Fine Print.
+ * Display the Fine Print.
  */
 void PageHandler::fine_print(struct evhttp_request* request, void* page_handler_ptr) {
     //TODO: implement.
 }
 
 /**
- * Load the words to guess.
+ * Display the words to guess.
  */
 void PageHandler::words(struct evhttp_request* request, void* page_handler_ptr) {
-    //TODO: implement.
+    //Get the words to send in JSON format.
+    PageHandler* this_ = (PageHandler*) page_handler_ptr;
+    std::string uri = request_uri_path(request);
+    std::string words = this_->make_words_to_guess(uri.substr(6));
+    
+    //Set the proper Content-Type header
+    struct evkeyvalq* response_headers = evhttp_request_get_output_headers(request);
+    evhttp_add_header(response_headers, "Content-Type", "application/json");
+    
+    this_->server_->send_response(request, words, HTTP_OK);
 }
 
 /**
- * 404 Not Found page.
+ * Display the 404 Not Found page.
  */
 void PageHandler::not_found(struct evhttp_request* request, void* page_handler_ptr) {
 }
@@ -121,11 +165,147 @@ void PageHandler::not_found(struct evhttp_request* request, void* page_handler_p
  * Returns an string containing a JSON object, some of which
  * would be real (in that case they'd have a definition as well),
  * and some of which would be fake.
+ *
+ * @param description_uri the part of uri that describes what kind of 
+ * words to make; should be of the format 
+ * "/<dictionary>/<num_words>/<index|length>/<index_name|length_from[/length_to]>", e.g.:
+ *     "/owl2/10/index/q_words"
+ *     "/owl2/20/length/2/4" 
  */
-std::string PageHandler::make_words_to_guess(const std::string& template_path) {
-    //TODO: implement.
-    std::string empty_string;
-    return empty_string;
+std::string PageHandler::make_words_to_guess(const std::string& description_uri) {
+    std::stringstream result;
+    result << "[";
+    
+    //Parse the description uri.
+    const size_t max_parts = 5;
+    std::vector<std::string> description;
+    size_t end = 0;
+    size_t part_number = 1;
+    
+    while ((end + 1) < description_uri.length()) {
+        const size_t start = end + 1;
+        end = description_uri.find_first_of('/', start);
+        
+        if (end == std::string::npos) {
+            description.push_back(description_uri.substr(start));
+            break;
+        
+        } else {
+            description.push_back(description_uri.substr(start, end - start));
+        }    
+        
+        if (part_number >= max_parts) {
+            break;
+        }
+        
+        part_number++;
+    };
+    
+    //Ignore the dictionary; it'll always be owl2.
+//    if (description[0] != "owl2") {
+//        return result;
+//    }
+    shared_ptr<WordPicker> word_picker(word_picker_);
+    
+    //Find the number of words to generate.
+    const size_t max_num_words = 40;
+    const size_t default_num_words = 10;
+    size_t num_words = 0;
+    
+    if (description.size() < 2) {
+        num_words = default_num_words;
+        
+    } else {
+        try {
+            num_words = lexical_cast<size_t, std::string>(description[1]);
+            num_words = std::max(std::min(num_words, max_num_words), 1u);
+        
+        } catch (bad_lexical_cast&) {
+            num_words = default_num_words;
+        }
+    }
+    
+    // Proceed differently depending on the what needs to be generated.
+    std::vector<WordDescriptionPtr> words;
+    
+    if (description.size() < 4 || description[2] != "index" ) {
+        // Generate the word based on length.
+        const size_t default_from = 2;
+        const size_t default_to = 6;
+        const size_t min_word_length = 2;
+        const size_t max_word_length = 15;
+        
+        //Get the "from" argument.
+        size_t from;
+        
+        if (description.size() < 4) {
+            from = default_from;
+            
+        } else {
+            try {
+                from  = lexical_cast<size_t, std::string>(description[3]);
+                
+                if (from > max_word_length) {
+                    from = max_word_length;
+                } else if (from < max_word_length) {
+                    from = min_word_length;
+                }
+            } catch (bad_lexical_cast&) {
+                from = default_from;
+            }
+        }
+        
+        // Get the "to" argument.
+        size_t to;
+        
+        if (description.size() < 5) {
+            to = std::max(default_to, from);
+            
+        } else {
+            try {
+                to = lexical_cast<size_t, std::string>(description[4]);
+                to = std::max(std::min(to, max_word_length), from);
+
+            } catch (bad_lexical_cast&) {
+                to = std::max(default_to, from);
+            }
+        }
+        
+        words = word_picker->get_words_by_length(from, to, num_words);
+        
+    } else {
+        //Pick words from an index.
+        //Find the index to use.  Since we made it this far, we're 
+        //guaranteed to have the fourth element in description vector.
+        //Use the first index by default.
+        std::string index_name = description[3];
+        size_t index_num = 0;
+        
+        for (size_t i = 0; i < index_descriptions_.size(); i++) {
+            if (index_descriptions_[i]->name() == index_name) {
+                index_num = i;
+                break;
+            }
+        }
+        
+        words = word_picker->get_words_from_index(index_num, num_words);
+    }
+    
+    //Compose the JSON object.
+    for (size_t i = 0; i < words.size(); i++) {
+        result << "\n\t{";
+        result << "\n\t\t\"word\": \"" << words[i]->word << "\",";
+        result << "\n\t\t\"description\": \"" << words[i]->description << "\",";
+        result << "\n\t\t\"is_real\": " << (words[i]->is_real ? "true" : "false") << "";
+        result << "\n\t}";
+        
+        if (i != words.size() - 1) {
+            result << ",";
+        }
+    }
+        
+    result << "\n]";
+    return result.str();
 }
 
 /// Ensure that the page buffer can fit the page to be generated.
