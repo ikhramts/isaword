@@ -43,6 +43,12 @@ class WordIndexDescription;
 
 class PageHandler {
 public:
+    /// Default minimum word length.
+    static const size_t kDefaultMinWordLength = 2;
+    
+    /// Default maximum word length.
+    static const size_t kDefaultMaxWordLength = 8;
+
     /**
      * Construct an instance of PageHandler.
      */
@@ -106,6 +112,9 @@ private:
     /// Ensure that the page buffer can fit the page to be generated.
     void reserve_page_buffer(size_t bytes);
     
+    /// Build the template for the main page.
+    std::string build_main_page_template();
+    
     /// Convert a template path to the path relative to the executable.
     std::string template_path(const std::string& path) {
         return template_root_ + path;
@@ -123,6 +132,9 @@ private:
     /// A place to temporarily generate web pages.
     boost::shared_array<char> page_buffer_;
     
+    /// A piece of memory to use while generating web pages.
+    boost::shared_array<char> template_buffer_;
+    
     /// Size of the page buffer.
     size_t page_buffer_size_;
     
@@ -131,6 +143,9 @@ private:
     
     /// A list of indexes for words.
     std::vector<boost::shared_ptr<WordIndexDescription> > index_descriptions_;
+    
+    /// Cached main page template.
+    std::string main_page_template_;
 };
 
 } /* namespace isaword */

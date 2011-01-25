@@ -39,6 +39,7 @@ struct evhttp_request;
 namespace isaword {
 
 class HttpServer;
+class FileCache;
 
 class FileHandler {
 public:
@@ -113,7 +114,6 @@ public:
      * etc).
      */
     bool is_permitted_file_path(const std::string& file_path) const;
-     
     
     /*=============== Getters/setters ==============*/
     /// Set cache control response header.
@@ -152,7 +152,8 @@ private:
     /// The regex expression for permitted file paths.
     boost::regex allowed_path_pattern_;
     
-    /// File buffer
+    /// File cache.
+    boost::shared_ptr<FileCache> file_cache_;
 };
 
 

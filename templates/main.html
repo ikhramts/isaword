@@ -1,0 +1,33 @@
+<div class="main">
+    <h3>Is this a <a href="/about#valid_words">valid word</a>?</h3>
+    <ul id="words-to-guess">
+        <li>
+            <span class="word"></span>
+            <span class="yes">Yes</span>
+            <span class="no">No</span>
+            <span class="skip">Skip</span>
+            <span class="description"></span>
+        </li>
+    </ul>
+</div>
+<div class="settings">
+    <h3>Type of words</h3>
+    <div id="word-type">
+        <p>
+            <input id="word-type-length" type="radio" name="word-type" value="length" checked />
+            <label for="word-type-length">
+                Words 
+                <input id="from-length" type="text" maxlength="2" value="%u"/> - 
+                <input id="to-length" type="text" maxlength="2" value="%u"/>
+                letters long
+            </label>
+        </p>
+        <!-- Various word indexes; use index-description.html for each index. -->
+        %s
+    </div>
+    <h3>History</h3>
+    <p>
+        Number of previous guesses to display:
+        <input id="history-size" type="text" maxlength="2" value="20"/>
+    </p>
+</div>

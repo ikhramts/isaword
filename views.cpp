@@ -51,6 +51,12 @@ using boost::bad_lexical_cast;
 
 namespace isaword {
 
+/// Default minimum word length.
+const size_t PageHandler::kDefaultMinWordLength;
+
+/// Default maximum word length.
+const size_t PageHandler::kDefaultMaxWordLength;
+
 /**
  * Initialize.
  * Returns true if there were no problems; false if the initialization
@@ -66,7 +72,7 @@ bool PageHandler::initialize() {
     shared_ptr<WordIndexDescription> q_words(
         new WordIndexDescription("q_words", "Q words", ".*Q.*"));
     shared_ptr<WordIndexDescription> q_witout_u_words(
-        new WordIndexDescription("q_withoutt_u_words", "Q words", "^(.*Q[^U].*)|(.*Q)$"));
+        new WordIndexDescription("q_withoutt_u_words", "Q without U words", "^(.*Q[^U].*)|(.*Q)$"));
     shared_ptr<WordIndexDescription> x_words(
         new WordIndexDescription("x_words", "X words", "^.*X.*$"));
     shared_ptr<WordIndexDescription> z_words(
@@ -94,6 +100,9 @@ bool PageHandler::initialize() {
     word_picker_ = shared_ptr<WordPicker>(new WordPicker(index_descriptions_));
     bool has_initialized_word_picker = word_picker_->initialize("dictionaries/owl2.txt");
     
+    //Build vairous templates.
+    main_page_template_ =  this->build_main_page_template();
+    
     //Attach to the server.
     server_->add_url_handler("/", &main_page, (void*) this);
     server_->add_url_handler("/words/[a-z0-9/_]+", &words, (void*) this);
@@ -106,19 +115,16 @@ bool PageHandler::initialize() {
  */
 void PageHandler::main_page(struct evhttp_request* request, void* page_handler_ptr) {
     PageHandler* this_ = (PageHandler*) page_handler_ptr;
-    shared_array<char> page_template;
-    size_t chars = 0;
-    const bool got_template = 
-        this_->template_cache_->get(
-                this_->template_path("templates/main-layout.html"), 
-                page_template,
-                &chars);
 
-    this_->reserve_page_buffer(chars + 50);
-    const int page_size = sprintf(this_->page_buffer_.get(), page_template.get(), "Hello!");
+    //Compose the main page.
+    std::string words("var words = ");
+    words += this_->make_words_to_guess("/") + ';';
+    const int page_size = 
+        sprintf(this_->page_buffer_.get(), this_->main_page_template_.c_str(), words.c_str());
     const size_t u_page_size = static_cast<size_t>(page_size);
     
     //Return the page.
+    response_set_never_cache(request);
     this_->server_->send_response(request, this_->page_buffer_.get(), u_page_size, HTTP_OK);
 }
 
@@ -149,6 +155,7 @@ void PageHandler::words(struct evhttp_request* request, void* page_handler_ptr) 
     struct evkeyvalq* response_headers = evhttp_request_get_output_headers(request);
     evhttp_add_header(response_headers, "Content-Type", "application/json");
     
+    response_set_never_cache(request);
     this_->server_->send_response(request, words, HTTP_OK);
 }
 
@@ -230,8 +237,8 @@ std::string PageHandler::make_words_to_guess(const std::string& description_uri)
     
     if (description.size() < 4 || description[2] != "index" ) {
         // Generate the word based on length.
-        const size_t default_from = 2;
-        const size_t default_to = 6;
+        const size_t default_from = kDefaultMinWordLength;
+        const size_t default_to = kDefaultMaxWordLength;
         const size_t min_word_length = 2;
         const size_t max_word_length = 15;
         
@@ -244,12 +251,8 @@ std::string PageHandler::make_words_to_guess(const std::string& description_uri)
         } else {
             try {
                 from  = lexical_cast<size_t, std::string>(description[3]);
+                from = std::max(std::min(from, max_word_length), min_word_length);
                 
-                if (from > max_word_length) {
-                    from = max_word_length;
-                } else if (from < max_word_length) {
-                    from = min_word_length;
-                }
             } catch (bad_lexical_cast&) {
                 from = default_from;
             }
@@ -315,6 +318,95 @@ void PageHandler::reserve_page_buffer(size_t bytes) {
     }
     
     page_buffer_ = shared_array<char>(new char[page_buffer_size_]);
+}
+
+/// Build the template for the main page.
+std::string PageHandler::build_main_page_template() {
+    std::string empty_string;
+    
+    // Build the word type menu.  Allow for 20 character index names and 50
+    // character index descriptions.
+    const size_t extra_chars = 20 + 20 + 20 + 50;
+
+    //Find the template for producing word type selectors.
+    size_t index_template_chars = 0;
+    shared_array<char> type_selection_template;
+    
+    const bool got_index_template = this->template_cache_->get(
+                            this->template_path("templates/index-description.html"), 
+                            type_selection_template,
+                            &index_template_chars);
+    
+    
+    if (!got_index_template) {
+        std::cout << "Could not find template at templates/index-description.html"
+                  << std::endl;
+        return empty_string;
+    }
+    
+    shared_array<char> word_type_piece(new char[index_template_chars + extra_chars]);
+    
+    //Put all word type selectors together.
+    std::string word_type_selector;
+    
+    for (size_t i = 0; i < index_descriptions_.size(); ++i) {
+        shared_ptr<WordIndexDescription> word_type = index_descriptions_[i];
+        sprintf(word_type_piece.get(), 
+                type_selection_template.get(),
+                word_type->name().c_str(),
+                word_type->name().c_str(),
+                word_type->name().c_str(),
+                word_type->description().c_str());
+        
+        word_type_selector += word_type_piece.get();
+    }
+    
+    // Insert the wort type selector piece into the content for the
+    // main page.
+    size_t main_content_chars = 0;
+    shared_array<char> main_content_template;
+    
+    const bool got_content_template = this->template_cache_->get(
+                            this->template_path("templates/main.html"), 
+                            main_content_template,
+                            &main_content_chars);
+    
+    
+    if (!got_content_template) {
+        std::cout << "Could not find template at templates/main.html"
+                  << std::endl;
+        return empty_string;
+    }
+    
+    shared_array<char> main_content(new char[main_content_chars + word_type_selector.length() + 1]);
+    const size_t content_chars = 
+        sprintf(main_content.get(), 
+                main_content_template.get(), 
+                kDefaultMinWordLength,
+                kDefaultMaxWordLength,
+                word_type_selector.c_str()); 
+    
+    // Insert the content of the main page into the general page layout.
+    size_t layout_chars = 0;
+    shared_array<char> layout_template;
+    
+    const bool got_layout_template = this->template_cache_->get(
+                            this->template_path("templates/main-layout.html"), 
+                            layout_template,
+                            &layout_chars);
+    
+    
+    if (!got_layout_template) {
+        std::cout << "Could not find template at templates/main-layout.html"
+                  << std::endl;
+        return empty_string;
+    }
+    
+    shared_array<char> main_page_template(new char[layout_chars + content_chars]);
+    sprintf(main_page_template.get(), layout_template.get(), "%s", main_content.get()); 
+    
+    std::string s_main_page_template(main_page_template.get());
+    return s_main_page_template;
 }
 
 } /* namespace isaword */

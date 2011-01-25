@@ -26,6 +26,7 @@
 #include <vector>
 
 #include <boost/shared_ptr.hpp>
+#include <boost/shared_array.hpp>
 #include <boost/regex.hpp>
 
 #include <event2/event.h>
@@ -38,6 +39,10 @@
 #include "file_handler.h"
 #include "http_server.h"
 #include "http_utils.h"
+#include "file_cache.h"
+
+using boost::shared_ptr;
+using boost::shared_array;
 
 namespace isaword {
 
@@ -76,6 +81,9 @@ FileHandler::FileRootStatusCode FileHandler::initialize(const std::string& file_
     
     allowed_path_pattern_ = 
         boost::regex("^[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]*)*(/[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]*)*)*$");
+    
+    // Initialize the file cache.
+    file_cache_ = shared_ptr<FileCache>(new FileCache());
     
     return FileHandler::FILE_ROOT_OK;
 }
@@ -121,23 +129,37 @@ void FileHandler::handle_request(struct evhttp_request* request) {
     std::string uri(request_uri_path(request));
     std::string relative_file_path(uri.substr(url_root_.size()));
     
-    //Read the file.
-    size_t bytes_read;
-    bool has_succeeded = 
-        this->read_file(relative_file_path, 
-                        file_read_buffer_, 
-                        file_read_buffer_size_, 
-                        bytes_read);
+    //Check whether the user entered a valid file path.
+    if (!this->is_permitted_file_path(relative_file_path)) {
+        // Invalid request.  Cannot find the file.
+        server_->send_response(request, std::string(""), HTTP_NOTFOUND);
+        return;
+    }
     
-    //Start writing the response.
-    //Add Cache Control to the response headers.
+    //Attempt to load the file.
+    std::string full_path = file_root_ + relative_file_path;
+    CachedFilePtr cached_file;
+    const bool has_loaded = file_cache_->get_cached_object(full_path, cached_file);
+    
+    if (!has_loaded) {
+        // No such file.
+        server_->send_response(request, std::string(""), HTTP_NOTFOUND);
+        return;
+    }
+    
+    // Start writing the response.
+    // Add Last-Modified response header.
+    const time_t last_modified = cached_file->last_modified();
     struct evkeyvalq* response_headers = evhttp_request_get_output_headers(request);
+    shared_array<char> sz_last_modified(time_to_string(last_modified));
+    evhttp_add_header(response_headers, "Last-Modified", sz_last_modified.get());
     
+    // Add Cache Control response header.
     if (!cache_control_.empty()) {
         evhttp_add_header(response_headers, "Cache-Control", cache_control_.c_str());
     }
     
-    //Set the proper content type.
+    // Set the Content-Type header.
     std::string extension;
     size_t extension_start = relative_file_path.find_last_of(".");
     const char* content_type = NULL;
@@ -148,9 +170,9 @@ void FileHandler::handle_request(struct evhttp_request* request) {
     
     if      (extension == "css")    { content_type = "text/css";} 
     else if (extension == "js")     { content_type = "text/javascript"; }
+    else if (extension == "png")    { content_type = "image/png"; }
     else if (extension == "jpeg")   { content_type = "image/jpeg"; }
     else if (extension == "jpg")    { content_type = "image/jpeg"; }
-    else if (extension == "png")    { content_type = "image/png"; }
     else if (extension == "gif")    { content_type = "image/gif"; }
     else if (extension == "ico")    { content_type = "image/vnd.microsoft.icon"; }
     else if (extension == "txt")    { content_type = "text/plain"; }
@@ -162,9 +184,21 @@ void FileHandler::handle_request(struct evhttp_request* request) {
     
     evhttp_add_header(response_headers, "Content-Type", content_type);
     
-    //Send the response.
-    const int response_code = has_succeeded ? HTTP_OK : HTTP_NOTFOUND;
-    server_->send_response(request, file_read_buffer_, bytes_read, response_code);
+    // Check whether the user agent already has the right version of the file.
+    // TODO: need to implement handling "If-None-Match" header.
+    struct evkeyvalq* request_headers = evhttp_request_get_input_headers(request);
+    const char* if_modified_since = evhttp_find_header(request_headers, "If-Modified-Since");
+    const time_t t_if_modified_since = string_to_time(if_modified_since);
+    
+    if (t_if_modified_since >= cached_file->last_modified()) {
+        server_->send_response(request, std::string(""), HTTP_NOTMODIFIED);
+        return;
+    }
+    
+    // Respond with the file data..
+    shared_array<char> file_data = cached_file->data();
+    size_t data_size = cached_file->data_size();
+    server_->send_response(request, file_data.get(), data_size, HTTP_OK);
 }
 
 
@@ -207,6 +241,7 @@ bool FileHandler::read_file(const std::string& relative_file_path,
     std::ifstream file(file_path.c_str());
     if (!file.good()) {
         file.close();
+        bytes_read = 0;
         return false;
     }
     

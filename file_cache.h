@@ -76,6 +76,19 @@ public:
              boost::shared_array<char>& data, 
              size_t* data_size = NULL);
     
+    /**
+     * Get the cached file as well as metadata associated with it.
+     * If the file is not in cache, it will be automatically loaded.  
+     * If the cached object is out of date, it will be refreshed.
+     * The shared_ptr to the CachedFile object will be returned through
+     * the second argument.  On failure, cached_file will contain an 
+     * object with no data.
+     *
+     * @return true if the file exists at the time of latest refresh; 
+     * false otherwise.
+     */
+    bool get_cached_object(const std::string& file_path, CachedFilePtr& cached_file);
+    
     /*=============== Getters/Setters ====================*/
     /// Get the cache expiration period.
     time_t expiration_period() const                {return expiration_period_;}
@@ -140,6 +153,14 @@ public:
      */
     bool get(boost::shared_array<char>& data, size_t& size);
     
+    /**
+     * Refresh the cached data if it has expired.
+     * @return true on success, false on failure (e.g. if the file is gone
+     * or not accessible).  In case of failure all data will be removed from
+     * cache.
+     */
+    bool refresh_if_expired();
+    
     /*=============== Getters/Setters ====================*/
     /// Get the cache expiration time.
     time_t expiration_time() const                  {return expiration_time_;}
@@ -152,6 +173,17 @@ public:
     
     /// Get the name of the cached file.
     std::string file_path() const                   {return file_path_;}
+    
+    /// Get the last modified date of the file.
+    time_t last_modified() const                    {return last_modified_;}
+    
+    /// Get the currently cached data; do not refresh the contents
+    /// even if it has expired.
+    boost::shared_array<char> data()                {return data_;}
+    
+    /// Get the number of bytes of data currently cached.
+    /// Do not refresh the content even if it has expired.
+    size_t data_size() const                        {return data_size_;}
     
 private:
     /**

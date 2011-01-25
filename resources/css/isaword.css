@@ -1,0 +1,198 @@
+/*
+ * Copyright 2011 Iouri Khramtsov.
+ *
+ * This software is available under Apache License, Version 
+ * 2.0 (the "License"); you may not use this file except in 
+ * compliance with the License. You may obtain a copy of the
+ * License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+ /****************** General Style Info *********************/
+* {margin:0; padding:0; 
+    font-family: Verdana, 'Bitsream Vera Sans', helvetica, arial, sans-serif;
+}
+
+html { background: #fff;
+}
+body {color: #000; font-family:Verdana, 'Bitsream Vera Sans', helvetica, arial, sans-serif; margin: 0;
+    font-size: 12px; line-height: 19px;}
+
+p {margin-top: 20px; margin-bottom: 20px;}
+
+a {/* color: #003d4c;*/ color: #000; text-decoration: underline; /*font-weight: bold;*/}
+a:hover {color: #5E8206; text-decoration:underline; }
+a img { border:none; }
+
+img {border: none;}
+
+h1, h2, h3, h4 { font-weight: normal; }
+h2 {/*color: #709E20;*/ color: #5E8206; font-family:'Myriad Pro','lucida grande', helvetica, arial, sans-serif;
+	font-size: 300%; font-weight: bold; margin: 15px 0 15px 0; clear:both; line-height: 100%;}
+h3 {color: #603813; /*font-family: 'lucida sans', arial, sans-serif*/;  letter-spacing: -0.03em;
+	font-size: 155%; margin-top: 15px; margin-bottom: 10px; }
+h4 {color: #603813; font-weight: normal; padding-top: 0.5em;}
+
+ul, ol {margin: 0 30px;}
+
+/****************** Layout *********************/
+#header {width: 100%; height: 93px; margin: 0 auto; 
+    background: #B3B3B3 url('/resources/css/header-bg-grey-personalized.png') repeat-x;}
+#header h1 {width: 850px; height: 93px; margin: 0 auto; padding: 0px;}
+#header h1 a {display: block; width: 850px; height: 93px; margin: 0; padding: 0;
+    /*background: #AADD58 url('/resources/css/header-transparent.png') no-repeat;*/
+    background:  url('/resources/css/header-grey-shadows-personalized.png') no-repeat;
+    text-indent: -9999px;}
+#header h2 {display: none;}
+
+#container {min-width: 850px; text-align: left; background: #fff;}
+#content{width: 850px; margin: 0 auto; clear: both; color: #333; padding: 0; /*overflow: auto;*/ 
+	background: #fff; min-height: 400px;}
+
+#footer {clear: both; width: 100%; margin: 0 0; background: #ddd;}
+#footer-content {width: 850px; margin: 0 auto; padding: 10px; text-align: center; color: #666;}
+#footer-content p {margin: 0;}
+
+/****************** Common Elements *********************/
+/* Tables */
+table {clear: both; width: 750px; border-collapse: collapse;}
+
+table tr td {padding: 0 5px; padding-top: 3px; text-align: center; vertical-align: top;}
+table tr td.description {text-align: right;}
+table tr td.price {text-align: center; width: 12%; }
+
+table tr.headers th {border-bottom: 2px solid #42210B; font-weight: bold; padding: 3px;
+	text-align: center; }
+table tr.order-subtotal td.price {border-top: 1px solid #42210B;}
+table tr.order-total td.price {font-weight: bold; border-top: double #42210B;}
+
+/* Forms */
+form {padding: 0;}
+form div.field-wrapper {margin-top: 10px; margin-bottom: 10px;}
+label {display: inline-block; width: 200px; }
+
+select {vertical-align: text-bottom; margin-right: 10px;}
+select[multiple=multiple] {width: 100%; }
+option {padding: 0 3px;}
+
+input[type=text] { margin-right: 10px;}
+input[type=checkbox] { margin: 0px 6px 7px 2px; width: auto; }
+input[type=radio] {width:auto; margin: 0 3px 7px 0; }
+
+div.radio label { margin: 0 0 6px 20px; }
+
+input[type=submit] { display: inline; padding: 2px 5px; width: auto;
+    vertical-align: bottom;}
+
+textarea {font-family: courier; font-size: normal;}
+
+form ul.errorlist {margin-left: 200px; list-style-type: none;}
+form .checkbox ul.errorlist {margin-left: 0px;}
+
+/* Notices, special fonts, hacks. */
+.error {color: red; font-size: 100%;}
+.notice {background: #FFEA94; color: #000; display: block; font-family: Courier, monospace;
+    font-size: 120%; line-height: 140%; padding: 0.8em; margin: 1em 0; }
+.success {background: green; color: #fff; }
+.footnote {font-size: 8pt;}
+.email-address {color: #603813; font-style: italic;}
+.hidden {display: none;}
+.clearboth {clear: both;}
+
+.errorlist {color: red;}
+.highlighted{background: #FFEA94;}
+
+/* Floating images. */
+div.floating-image {display: block; float: right; width: 345px; margin: 0 0 25px 25px;}
+div.floating-image p {margin: 0 0 0 5px; font-size: 80%;}
+
+/************************ Elements on Add.html **************************/
+/* Overhead translucent container. */
+.float-header {float: left; display: block; position: fixed; top: 0px;
+    filter:alpha(opacity=97); opacity: 0.98;
+}
+
+/* Product selector.*/
+#select-garment-details-wrap {display:block; height: 260px;}
+#select-garment-details {display:block; height: 260px; width: 850px; background: white;}
+
+#select-garment-details .box {display: block; float: left; height: 90px; /*background: #AADD58;*/
+    margin-right: 5px;
+}
+#select-garment-details .box h3 {font-size: 150%;  background: white;}
+#select-garment-details .box label {width: auto; margin-right: 20px;}
+/*#select-garment-details .box span.radio-input{display: block;}*/
+
+#select-sex {width: 210px;}
+#select-garment-size-color {width: 300px;}
+
+/* Product image, price. */
+#product-description {display: block; float: right; width: 315px; margin: 0; margin-bottom: 5px;
+    /*background: #754C24;*/ text-align: center;}
+
+#product-image-container {padding: 10px 0 0 0;}
+#product-image {padding: 0 15px 15px 0; 
+	background: url('/resources/css/product-image-bg.png') no-repeat;}
+
+#product-pricing {color: #42210B; font-weight: bold;}
+#product-pricing input {margin-left: 15px;}
+
+/* Custom text to print. */
+#custom-text-wrapper {display: block; float: left; width: 470px;}
+#custom-text-wrapper h3 {margin-top: 10px;}
+
+#product-specifics {margin: 20px;}
+#product-selector select {margin: 10px;}
+
+/* Template Selector. */
+#print-selector {clear: both;}
+
+#template-selector {width: 820px; list-style-type: none; margin: 0;}
+#template-selector li {display: inline; margin: 0;}
+#template-selector li a {font-size: 0px; text-decoration: none;}
+#template-selector li a img {border: 3px solid white; margin: 0 10px 0 10px; 
+	padding: 5px 2px 5px 7px;}
+#template-selector li.selected a img {border: 3px solid #709E20; margin: 0 10px 0 10px; 
+	padding: 5px 2px 5px 7px; }
+
+#form-submit {margin: 10px;}
+/************************ Elements on Cart.html **************************/
+/* Shopping cart */
+#clear-cart {margin-left: 650px; margin-bottom: 10px;}
+
+#order-lines div.order-line {margin-bottom: 7px; height: 58px;}
+#order-lines div.even {background: #eee;}
+#order-lines div.template-thumbnail {display: block; float: left; width: 33px; margin: 0 10px 0 5px;
+	padding: 4px 0 4px 0;}
+#order-lines div.order-line-description {display: block; float: left; width: 487px; 
+    margin-bottom: 7px; margin-right: 15px; padding-top: 4px;}
+#order-lines div.order-line-price {display: block; float: left; width: 100px; padding-top: 4px;}
+#order-lines div.order-line-remove {display: block; float: left; width: 100px; padding-top: 4px;}
+
+#shipping-destination {display: block; float: left; width: 600px; clear: both;}
+
+#charges-taxes-and-total {clear: both;}
+#charges-taxes-and-total div.charges-line .label {display:block; float: left; 
+    width: 500px; margin-right: 50px; text-align: right;}
+#charges-taxes-and-total div.charges-line .amount {display:block; float: left; 
+    width: 100px;}
+#charges-taxes-and-total div.total-line {font-weight: bold;}
+
+#confirm-fine-print-wrapper {margin-bottom: 15px;}
+#confirm-fine-print {margin-bottom: 0px;}
+
+#submit-checkout {padding-bottom: 40px;}
+
+/************************ Elements on Receipt.html **************************/
+div.summary-line {width: 100%; margin-top: 5px; clear: both;}
+span.field-name {display: block; float: left; width: 150px; margin: 7px 0; 
+	font-weight: bold; vertical-align: top;}
+span.field-value {display: block; float: left; margin: 7px 0;}

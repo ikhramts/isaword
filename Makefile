@@ -58,8 +58,8 @@ build: $(OBJS) $(MAIN_OBJ)
 	$(CXX) -c $(CFLAGS) $<
 	
 # Release:
-release: $(CFLAGS) += -O2
-release: $(LDFLAGS) += -O2
+release: CFLAGS += -O2
+release: LDFLAGS += -O2
 release: build
 
 # Debug:
@@ -77,7 +77,7 @@ test_debug: LDFLAGS += -O0
 test_debug: build_test run_test
 
 build_test: $(OBJS) $(TEST_OBJ)
-	$(CXX) -o $(TEST_BIN) $(CFLAGS) $(OBJS) $(TEST_OBJ) $(LIBS) $(TEST_LIBS)
+	$(CXX) -o $(TEST_BIN) $(LDFLAGS) $(OBJS) $(TEST_OBJ) $(LIBS) $(TEST_LIBS)
 
 run_test:
 	@echo ==================================

@@ -49,9 +49,29 @@ namespace isaword {
 bool FileCache::get(const std::string& file_path,
                     boost::shared_array<char>& data, 
                     size_t* data_size) {
+    CachedFilePtr cached_file;
+    const bool found_file = this->get_cached_object(file_path, cached_file);
+    data = cached_file->data();
+    
+    if (data_size != NULL) {
+        *data_size = cached_file->data_size();
+    }
+    
+    return found_file;
+}
+
+/**
+ * Get the cached file as well as metadata associated with it.
+ *
+ * @return if the file exists on disk, a shared_ptr to the 
+ * CachedFile object associated with the file; NULL shared_ptr
+ * otherwise.  If the file is not in cache, it will be automatically
+ * loaded.  If the cached object is out of date, it will be refreshed.
+ */
+bool FileCache::get_cached_object(const std::string& file_path, 
+                                  CachedFilePtr& cached_file) {
     //Check if the file is already being cached.
     CachedFilesMap::const_iterator it = cached_files_.find(file_path);
-    CachedFilePtr cached_file;
     
     if (it == cached_files_.end()) {
         //Start caching the file.
@@ -63,13 +83,7 @@ bool FileCache::get(const std::string& file_path,
     }
     
     //Get the file contents.
-    size_t temp_data_size = 0;
-    const bool found_file = cached_file->get(data, temp_data_size);
-    
-    if (data_size != NULL) {
-        *data_size = temp_data_size;
-    }
-    
+    const bool found_file = cached_file->refresh_if_expired();
     return found_file;
 }
     
@@ -88,10 +102,22 @@ const time_t CachedFile::kDefaultExpirationPeriod;
  */
 bool CachedFile::get(boost::shared_array<char>& data, size_t& size) {
     //Check whethr the cache has expired or nonexistent.
+    this->refresh_if_expired();
+    data = data_;
+    size = data_size_;
+    return (size != 0);
+}
+
+/**
+ * Refresh the cached data if it has expired or empty.
+ * @return true on success, false on failure (e.g. if the file is gone
+ * or not accessible).  In case of failure all data will be removed from
+ * cache.
+ */
+bool CachedFile::refresh_if_expired() {
     const time_t now = time(NULL);
-    shared_array<char> empty_array;
     
-    if (now >= expiration_time_ || data_ == empty_array) {
+    if (now >= expiration_time_ || data_size_ == 0) {
         expiration_time_ = now + expiration_period_;
         
         //Reload the cache.
@@ -101,13 +127,13 @@ bool CachedFile::get(boost::shared_array<char>& data, size_t& size) {
        
         if (status != 0 || S_ISDIR(stat_buffer.st_mode)) {
             this->empty_data();
-            goto return_data;
+            return false;
         }
         
         //Check whether the file has changed since the last time we
         //read it.
         if (stat_buffer.st_mtime == last_modified_) {
-            goto return_data;
+            return false;
         
         } else {
             last_modified_ = stat_buffer.st_mtime;
@@ -118,9 +144,8 @@ bool CachedFile::get(boost::shared_array<char>& data, size_t& size) {
         if (!file.good()) {
             file.close();
             this->empty_data();
-            goto return_data;
+            return false;
         }
-
         
         size_t file_size = stat_buffer.st_size;
         //shared_array<char> data(new char[file_size]);
@@ -136,10 +161,7 @@ bool CachedFile::get(boost::shared_array<char>& data, size_t& size) {
         data_[data_size_] = '\0';
     }
     
-return_data:
-    data = data_;
-    size = data_size_;
-    return (data_ != empty_array);
+    return true;
 }
 
 /**

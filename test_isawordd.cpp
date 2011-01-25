@@ -61,8 +61,24 @@ BOOST_AUTO_TEST_CASE(uri_path_with_query_args) {
     BOOST_CHECK_EQUAL(expected_path, path);
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_CASE(time_to_string_test) {
+    BOOST_CHECK_EQUAL(
+        strcmp(time_to_string((time_t)1295906542).get(), "Mon, 24 Jan 2011 22:02:22 GMT"), 0);
+    BOOST_CHECK_EQUAL(
+        strcmp(time_to_string((time_t)1295906673).get(), "Mon, 24 Jan 2011 22:04:33 GMT"), 0);
+    BOOST_CHECK_EQUAL(
+        strcmp(time_to_string((time_t)1240596879).get(), "Fri, 24 Apr 2009 18:14:39 GMT"), 0);
+}
 
+BOOST_AUTO_TEST_CASE(string_to_time_test) {
+    BOOST_CHECK_EQUAL(string_to_time("Mon, 24 Jan 2011 22:04:33 GMT"), 1295906673);
+    BOOST_CHECK_EQUAL(string_to_time("Monday, 24 January 2011 23:3:30 GMT"), 1295910210);
+    BOOST_CHECK_EQUAL(string_to_time("Fri, 24 Apr 2009 18:14:39 GMT"), 1240596879);
+    BOOST_CHECK_EQUAL(string_to_time("Invalid"), 0);
+    BOOST_CHECK_EQUAL(string_to_time((const char*) NULL), 0);
+}
+
+BOOST_AUTO_TEST_SUITE_END()
 /*---------------------------------------------------------
                     UriHandler tests.
 ----------------------------------------------------------*/
@@ -639,6 +655,8 @@ BOOST_AUTO_TEST_CASE(get_deleted_file) {
     BOOST_CHECK_EQUAL(data, empty_ptr);
     BOOST_CHECK_EQUAL(data_size, 0);
 }
+
+//TODO: test refresh()
 
 BOOST_AUTO_TEST_SUITE_END()
 

@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 #include <boost/shared_ptr.hpp>
+#include <boost/shared_array.hpp>
 #include <boost/regex.hpp>
 #include <event2/event.h>
 #include <event2/http.h>
@@ -42,7 +43,18 @@ std::string uri_path(const char* uri);
 /// an evhttp_request struct.
 std::string request_uri_path(struct evhttp_request* request);
 
+/// Convert time_t to HTTP Date/Time format.
+/// @return time stored in a C string according to RFC 822,
+/// e.g. "Mon, 24 Jan 2011 21:18:48 GMT" 
+boost::shared_array<char> time_to_string(time_t t);
 
+/// Parse HTTP Date/Time to time_t.
+/// @return seconds since epoch if time_string defines a valid time;
+/// 0 otherwise.
+time_t string_to_time(const char* time_string);
+
+/// Set response to never be cached.
+void response_set_never_cache(struct evhttp_request* request);
 
 
 } /* namespace isaword */
