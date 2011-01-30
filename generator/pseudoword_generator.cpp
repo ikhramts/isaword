@@ -155,7 +155,7 @@ bool PseudowordGenerator::prepare_for_generation() {
     return true;
 }
 
-std::string PseudowordGenerator::make_word() const {
+std::string PseudowordGenerator::make_word(size_t max_length) const {
     //Use the transition matrix to generate the word.
     //If the produced word is actually a dictionary word, try again.
     std::string word;
@@ -165,6 +165,8 @@ std::string PseudowordGenerator::make_word() const {
         bool is_at_last_character = false;
         bool has_word_ended = false;
         preceding_chars_.set_word_start();
+        size_t num_chars = 0;
+        bool completed_a_word = true;
         
         do {
             const int row_offset = preceding_chars_.row_index() * num_matrix_columns_;
@@ -192,18 +194,32 @@ std::string PseudowordGenerator::make_word() const {
                 preceding_chars_.set_next_char_end_of_word();
             }
             
+            //Make sure that the word is not too long.
+            num_chars++;
+            
+            if (max_length > 0 && num_chars > max_length) {
+                completed_a_word = false;
+                break;
+            }
+            
         } while (!has_word_ended);
+        
+        if (!completed_a_word) {
+            continue;
+        }
+        
     } while (this->is_dictionary_word(word));
     
     return word;
 }
 
-std::string PseudowordGenerator::make_word(const boost::regex& criteria) const {
+std::string PseudowordGenerator::make_word(const boost::regex& criteria, 
+                                           size_t max_length) const {
     //Use the transition matrix to generate the word.
     //If the produced word is actually a dictionary word, try again.
     std::string word;
     do {
-        word = this->make_word();
+        word = this->make_word(max_length);
     } while (!boost::regex_match(word, criteria));
     
     return word;

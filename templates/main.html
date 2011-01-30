@@ -1,24 +1,34 @@
 <div class="main">
     <h3>Is this a <a href="/about#valid_words">valid word</a>?</h3>
-    <ul id="words-to-guess">
-        <li>
-            <span class="word"></span>
-            <span class="yes">Yes</span>
-            <span class="no">No</span>
-            <span class="skip">Skip</span>
-            <span class="description"></span>
-        </li>
-    </ul>
+    <p id="guess">
+        <a href="#" class="yes">Yes</a>
+        <a href="#" class="no">No</a>
+        <a href="#" class="skip">Skip</a>
+    </p>
+    <div id="words-to-guess">
+        <div class="float-wrap">
+            <div class="word-container">
+                <div class="was-correct"><span></span></div>
+                <div class="word"><span></span></div>
+                <div class="is-a-word"><span></span></div>
+                <div class="description"><span></span></div>
+            </div>
+        </div>
+    </div>
 </div>
+<p class="white">.</p>
 <div class="settings">
     <h3>Type of words</h3>
     <div id="word-type">
         <p>
-            <input id="word-type-length" type="radio" name="word-type" value="length" checked />
+            <input id="word-type-length" class="word-type" 
+                type="radio" name="word-type" value="length" checked />
             <label for="word-type-length">
                 Words 
-                <input id="from-length" type="text" maxlength="2" value="%u"/> - 
-                <input id="to-length" type="text" maxlength="2" value="%u"/>
+                <input id="from-length" type="text" maxlength="2" size="2" 
+                    value="%u" class="smallnum"/> - 
+                <input id="to-length" type="text" maxlength="2"  size="2" 
+                    value="%u" class="smallnum"/>
                 letters long
             </label>
         </p>
@@ -28,6 +38,7 @@
     <h3>History</h3>
     <p>
         Number of previous guesses to display:
-        <input id="history-size" type="text" maxlength="2" value="20"/>
+        <input id="history-size" type="text" maxlength="4"  size="3" 
+            value="20" class="smallnum"/>
     </p>
 </div>

@@ -146,6 +146,9 @@ private:
     
     /// Cached main page template.
     std::string main_page_template_;
+    
+    /// Cached About page.
+    std::string about_page_;
 };
 
 } /* namespace isaword */

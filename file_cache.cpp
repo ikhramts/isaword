@@ -84,6 +84,7 @@ bool FileCache::get_cached_object(const std::string& file_path,
     
     //Get the file contents.
     const bool found_file = cached_file->refresh_if_expired();
+    
     return found_file;
 }
     
@@ -102,10 +103,10 @@ const time_t CachedFile::kDefaultExpirationPeriod;
  */
 bool CachedFile::get(boost::shared_array<char>& data, size_t& size) {
     //Check whethr the cache has expired or nonexistent.
-    this->refresh_if_expired();
+    const bool has_found = this->refresh_if_expired();
     data = data_;
     size = data_size_;
-    return (size != 0);
+    return has_found;
 }
 
 /**
@@ -133,7 +134,7 @@ bool CachedFile::refresh_if_expired() {
         //Check whether the file has changed since the last time we
         //read it.
         if (stat_buffer.st_mtime == last_modified_) {
-            return false;
+            return true;
         
         } else {
             last_modified_ = stat_buffer.st_mtime;

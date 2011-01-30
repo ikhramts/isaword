@@ -43,6 +43,8 @@ class FileCache;
 
 class FileHandler {
 public:
+    static const size_t kDefaultCachePeriodSec = 3600;
+
     enum FileRootStatusCode {
         FILE_ROOT_OK = 0,
         FILE_ROOT_NOT_FOUND = 1,
@@ -60,9 +62,10 @@ public:
      * Create a file request handler that will get files from a 
      * specified root directory.
      */
-    FileHandler()
+    FileHandler(size_t cache_period_sec = kDefaultCachePeriodSec)
     : is_attached_(false),
-    file_read_buffer_(NULL) {
+    file_read_buffer_(NULL),
+    cache_period_sec_(cache_period_sec) {
     }
     
     ~FileHandler();
@@ -154,6 +157,9 @@ private:
     
     /// File cache.
     boost::shared_ptr<FileCache> file_cache_;
+    
+    /// Seconds to cache the files for.
+    size_t cache_period_sec_;
 };
 
 

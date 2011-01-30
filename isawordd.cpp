@@ -31,10 +31,9 @@ int main() {
     server->initialize();
     
     // This part of the server is responsible for loading files.
-    shared_ptr<FileHandler> file_handler(new FileHandler());
+    shared_ptr<FileHandler> file_handler(new FileHandler(0 /* cache period */));
     file_handler->initialize("resources/");
     file_handler->attach_to_server(server, "/resources/");
-    file_handler->set_cache_control("public, max-age=3600");
     
     //Add some pages to the server.
     shared_ptr<PageHandler> page_handler(new PageHandler(server));

@@ -71,6 +71,7 @@ public:
     // Word index types.
     static const size_t kMinWordLength = 2;
     static const size_t kMaxWordLength = 15;
+    static const size_t kMaxIndexPseudowordLength = 8;
 
     WordPicker(const std::vector<boost::shared_ptr<WordIndexDescription> >& index_descriptions)
     : index_descriptions_(index_descriptions),
@@ -79,7 +80,8 @@ public:
       uniform_01_(),
       random_01_(random_numbers_generator_, uniform_01_),
       max_word_length_(kMaxWordLength),
-      min_word_length_(kMinWordLength){
+      min_word_length_(kMinWordLength),
+      max_index_pseudoword_length_(kMaxIndexPseudowordLength) {
     }
     
     /**
@@ -149,6 +151,9 @@ private:
 
     /// Minimum possible length of words to be tracked.
     size_t min_word_length_;
+
+    /// Maximum length for a pseudoword generated for an index.
+    size_t max_index_pseudoword_length_;
 };
 
 /*---------------------------------------------------------

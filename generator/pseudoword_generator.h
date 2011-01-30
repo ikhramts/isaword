@@ -169,15 +169,19 @@ public:
      * Generate a pseudoword.  The pseudoword will be checked against
      * existing dictionary words to ensure that it is not a dictionary
      * word.
+     *
+     * Optionally, maximum length of the generated word may be provided.
      */
-    std::string make_word() const;
+    std::string make_word(size_t max_length = 0) const;
     
     /**
      * Generate a pseudoword satisfying specific criteria.  The pseudoword 
      * will be checked against existing dictionary words to ensure that it 
      * is not a dictionary word.
+     *
+     * Optionally, maximum length of the generated word may be provided.
      */
-    std::string make_word(const boost::regex& criteria) const;
+    std::string make_word(const boost::regex& criteria, size_t max_length = 0) const;
     
     /*========= Getters/setters =======*/
     

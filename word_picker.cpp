@@ -48,6 +48,7 @@ namespace isaword {
  * false otherwise.
  */
 bool WordPicker::initialize(const std::string& dictionary_path) {
+    //std::cout << max_index_pseudoword_length_ << std::endl;
     indexes_.resize(index_descriptions_.size());
     
     // Load the dictionary line by line, adding the words to the
@@ -191,6 +192,8 @@ std::vector<WordDescriptionPtr> WordPicker::get_words_from_index(size_t index_nu
     std::vector<WordDescriptionPtr>& index = indexes_[index_num];
     const double index_size = static_cast<double>(index.size());
     
+    //std::cout << max_index_pseudoword_length_ << std::endl;
+    
     //Compose a list of words.
     for (size_t i = 0; i < num_words; i++) {
         //Decide whether this word will be real or fake.
@@ -203,7 +206,9 @@ std::vector<WordDescriptionPtr> WordPicker::get_words_from_index(size_t index_nu
         } else {
             // Fake word.
             WordDescriptionPtr fake_word(new WordDescription());
-            fake_word->word = pseudoword_generator_->make_word(index_description->pattern());
+            fake_word->word = 
+                pseudoword_generator_->make_word(index_description->pattern(), 
+                                                 max_index_pseudoword_length_);
             fake_word->description = "";
             fake_word->is_real = false;
             words.push_back(fake_word);

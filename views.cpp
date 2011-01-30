@@ -103,8 +103,25 @@ bool PageHandler::initialize() {
     //Build vairous templates.
     main_page_template_ =  this->build_main_page_template();
     
+    shared_array<char> main_layout;
+    size_t main_layout_size = 0;
+    template_cache_->get(this->template_path("templates/main-layout.html"), 
+                         main_layout,
+                         &main_layout_size);
+
+    shared_array<char> about_content;
+    size_t about_content_size = 0;
+    template_cache_->get(this->template_path("templates/about.html"), 
+                         about_content,
+                         &about_content_size);
+    
+    shared_array<char> about_page(new char[main_layout_size + about_content_size]);
+    sprintf(about_page.get(), main_layout.get(), "", about_content.get());
+    about_page_ = about_page.get();
+    
     //Attach to the server.
     server_->add_url_handler("/", &main_page, (void*) this);
+    server_->add_url_handler("/about", &about, (void*) this);
     server_->add_url_handler("/words/[a-z0-9/_]+", &words, (void*) this);
     return has_initialized_word_picker;
 }
@@ -132,7 +149,9 @@ void PageHandler::main_page(struct evhttp_request* request, void* page_handler_p
  * Display the About page.
  */
 void PageHandler::about(struct evhttp_request* request, void* page_handler_ptr) {
-    //TODO: implement.
+    PageHandler* this_ = (PageHandler*) page_handler_ptr;
+    response_set_never_cache(request);
+    this_->server_->send_response(request, this_->about_page_, HTTP_OK);
 }
 
 /**

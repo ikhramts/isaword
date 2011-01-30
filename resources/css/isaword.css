@@ -36,28 +36,31 @@ img {border: none;}
 
 h1, h2, h3, h4 { font-weight: normal; }
 h2 {/*color: #709E20;*/ color: #5E8206; font-family:'Myriad Pro','lucida grande', helvetica, arial, sans-serif;
-	font-size: 300%; font-weight: bold; margin: 15px 0 15px 0; clear:both; line-height: 100%;}
+	font-size: 300%; font-weight: bold; margin: 15px 0 15px 0; clear:both; line-height: 100%;
+    font-family: helvetica, arial, sans-serif;}
 h3 {color: #603813; /*font-family: 'lucida sans', arial, sans-serif*/;  letter-spacing: -0.03em;
-	font-size: 155%; margin-top: 15px; margin-bottom: 10px; }
+	font-size: 155%; margin: 10px 0 15px 0; 
+    font-family: helvetica, arial, sans-serif;}
 h4 {color: #603813; font-weight: normal; padding-top: 0.5em;}
 
 ul, ol {margin: 0 30px;}
 
 /****************** Layout *********************/
 #header {width: 100%; height: 93px; margin: 0 auto; 
-    background: #B3B3B3 url('/resources/css/header-bg-grey-personalized.png') repeat-x;}
+    background: #fff url('/resources/css/header-bg-grey-personalized.png') repeat-x;}
 #header h1 {width: 850px; height: 93px; margin: 0 auto; padding: 0px;}
 #header h1 a {display: block; width: 850px; height: 93px; margin: 0; padding: 0;
     /*background: #AADD58 url('/resources/css/header-transparent.png') no-repeat;*/
     background:  url('/resources/css/header-grey-shadows-personalized.png') no-repeat;
-    text-indent: -9999px;}
+    /*text-indent: -9999px;*/}
 #header h2 {display: none;}
 
 #container {min-width: 850px; text-align: left; background: #fff;}
 #content{width: 850px; margin: 0 auto; clear: both; color: #333; padding: 0; /*overflow: auto;*/ 
 	background: #fff; min-height: 400px;}
 
-#footer {clear: both; width: 100%; margin: 0 0; background: #ddd;}
+#footer {clear: both; width: 100%; margin: 0 0; background: #ddd; 
+    position: fixed; bottom: 0px;}
 #footer-content {width: 850px; margin: 0 auto; padding: 10px; text-align: center; color: #666;}
 #footer-content p {margin: 0;}
 
@@ -87,7 +90,7 @@ input[type=text] { margin-right: 10px;}
 input[type=checkbox] { margin: 0px 6px 7px 2px; width: auto; }
 input[type=radio] {width:auto; margin: 0 3px 7px 0; }
 
-div.radio label { margin: 0 0 6px 20px; }
+div.radio label { margin: 0 0 6px 20px; } 
 
 input[type=submit] { display: inline; padding: 2px 5px; width: auto;
     vertical-align: bottom;}
@@ -114,85 +117,33 @@ form .checkbox ul.errorlist {margin-left: 0px;}
 div.floating-image {display: block; float: right; width: 345px; margin: 0 0 25px 25px;}
 div.floating-image p {margin: 0 0 0 5px; font-size: 80%;}
 
-/************************ Elements on Add.html **************************/
-/* Overhead translucent container. */
-.float-header {float: left; display: block; position: fixed; top: 0px;
-    filter:alpha(opacity=97); opacity: 0.98;
-}
+p.white {color:#fff;}
 
-/* Product selector.*/
-#select-garment-details-wrap {display:block; height: 260px;}
-#select-garment-details {display:block; height: 260px; width: 850px; background: white;}
+/************************ Elements on main page **************************/
+div.main {display: block; float: left; width: 600px;}
 
-#select-garment-details .box {display: block; float: left; height: 90px; /*background: #AADD58;*/
-    margin-right: 5px;
-}
-#select-garment-details .box h3 {font-size: 150%;  background: white;}
-#select-garment-details .box label {width: auto; margin-right: 20px;}
-/*#select-garment-details .box span.radio-input{display: block;}*/
+#words-to-guess {margin: 0 0 40px 0; width: 580px; text-align: center; }
+.word-container {display: block; float:left; height: 60px; width: 580px; 
+    vertical-align: middle;}
+.word-container div {display: table-cell; /*float:left;*/ height: 60px; 
+    vertical-align: middle;}
+.word-container div  span {vertical-align: middle;}
 
-#select-sex {width: 210px;}
-#select-garment-size-color {width: 300px;}
+#words-to-guess .was-correct {width: 30px;}
+#words-to-guess .was-correct.true {background: green;}
+#words-to-guess .was-correct.false {background: red;}
+#words-to-guess .word {width: 130px; font-family: verdana; font-size: 14pt; font-weight: bolder;}
+#words-to-guess .is-a-word {color: red; width: 80px;}
+#words-to-guess .is-a-word .is-valid {color: green;}
+#words-to-guess .description {text-align: left; width:340px;}
 
-/* Product image, price. */
-#product-description {display: block; float: right; width: 315px; margin: 0; margin-bottom: 5px;
-    /*background: #754C24;*/ text-align: center;}
+div.settings {display: block; float: right; width: 225px; background: #A7CAD1;
+    padding: 10px; margin: 10px 0 10px 0; 
+    border: 1px solid #92ABB0; border-top-color: #B6D5DB; border-left-color: #B6D5DB;
+    border-bottom-left-radius: 7px 7px; border-bottom-right-radius: 7px 7px;
+    border-top-left-radius: 7px 7px; border-top-right-radius: 7px 7px;}
 
-#product-image-container {padding: 10px 0 0 0;}
-#product-image {padding: 0 15px 15px 0; 
-	background: url('/resources/css/product-image-bg.png') no-repeat;}
+div.settings p {margin: 0;}
+input.smallnum {margin: 0;}
 
-#product-pricing {color: #42210B; font-weight: bold;}
-#product-pricing input {margin-left: 15px;}
 
-/* Custom text to print. */
-#custom-text-wrapper {display: block; float: left; width: 470px;}
-#custom-text-wrapper h3 {margin-top: 10px;}
-
-#product-specifics {margin: 20px;}
-#product-selector select {margin: 10px;}
-
-/* Template Selector. */
-#print-selector {clear: both;}
-
-#template-selector {width: 820px; list-style-type: none; margin: 0;}
-#template-selector li {display: inline; margin: 0;}
-#template-selector li a {font-size: 0px; text-decoration: none;}
-#template-selector li a img {border: 3px solid white; margin: 0 10px 0 10px; 
-	padding: 5px 2px 5px 7px;}
-#template-selector li.selected a img {border: 3px solid #709E20; margin: 0 10px 0 10px; 
-	padding: 5px 2px 5px 7px; }
-
-#form-submit {margin: 10px;}
-/************************ Elements on Cart.html **************************/
-/* Shopping cart */
-#clear-cart {margin-left: 650px; margin-bottom: 10px;}
-
-#order-lines div.order-line {margin-bottom: 7px; height: 58px;}
-#order-lines div.even {background: #eee;}
-#order-lines div.template-thumbnail {display: block; float: left; width: 33px; margin: 0 10px 0 5px;
-	padding: 4px 0 4px 0;}
-#order-lines div.order-line-description {display: block; float: left; width: 487px; 
-    margin-bottom: 7px; margin-right: 15px; padding-top: 4px;}
-#order-lines div.order-line-price {display: block; float: left; width: 100px; padding-top: 4px;}
-#order-lines div.order-line-remove {display: block; float: left; width: 100px; padding-top: 4px;}
-
-#shipping-destination {display: block; float: left; width: 600px; clear: both;}
-
-#charges-taxes-and-total {clear: both;}
-#charges-taxes-and-total div.charges-line .label {display:block; float: left; 
-    width: 500px; margin-right: 50px; text-align: right;}
-#charges-taxes-and-total div.charges-line .amount {display:block; float: left; 
-    width: 100px;}
-#charges-taxes-and-total div.total-line {font-weight: bold;}
-
-#confirm-fine-print-wrapper {margin-bottom: 15px;}
-#confirm-fine-print {margin-bottom: 0px;}
-
-#submit-checkout {padding-bottom: 40px;}
-
-/************************ Elements on Receipt.html **************************/
-div.summary-line {width: 100%; margin-top: 5px; clear: both;}
-span.field-name {display: block; float: left; width: 150px; margin: 7px 0; 
-	font-weight: bold; vertical-align: top;}
-span.field-value {display: block; float: left; margin: 7px 0;}

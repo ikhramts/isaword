@@ -23,6 +23,7 @@
 
 #include <fstream>
 #include <string>
+#include <sstream>
 #include <vector>
 
 #include <boost/shared_ptr.hpp>
@@ -84,6 +85,10 @@ FileHandler::FileRootStatusCode FileHandler::initialize(const std::string& file_
     
     // Initialize the file cache.
     file_cache_ = shared_ptr<FileCache>(new FileCache());
+    file_cache_->set_expiration_period(cache_period_sec_);
+    std::stringstream cache_control;
+    cache_control << "public, max-age=" << cache_period_sec_;
+    cache_control_ = cache_control.str();
     
     return FileHandler::FILE_ROOT_OK;
 }
