@@ -86,11 +86,13 @@ function processGuess(guess) {
     //Check whether the guess was correct.
     var isValid = (wordContainer.find('.is-a-word span').text() == "valid");
     
+    var wasCorrectContainer = wordContainer.find('.was-correct');
+    
     if ((guess == "Yes" && isValid) || (guess == "No" && !isValid)) {
-        wordContainer.find('.was-correct').addClass('true');
+        wasCorrectContainer.addClass('true');
         
     } else if ((guess == "Yes" && !isValid) || (guess == "No" && isValid)) {
-        wordContainer.find('.was-correct').addClass('false');
+        wasCorrectContainer.addClass('false');
     }
     
     // Display the actual answer.

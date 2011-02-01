@@ -42,11 +42,20 @@ class UriHandler;
 class HttpServer {
 public:
     /// Maximum number of simultaneous requests.
-    static const int kMaxRequests = 1024;
+    static const size_t kMaxRequests = 500;
+    
+    /// Possible overload handling strategies.
+    enum OverloadHandlingStrategy {
+        DO_NOTHING,
+        RETURN_503,
+        DROP_REQUEST
+    };
     
     /// Create an HTTP server.
     HttpServer()
-    : event_base_(NULL), server_(NULL), not_found_handler_() {
+    : event_base_(NULL), 
+      server_(NULL), 
+      not_found_handler_() {
     }
     
     ///Initialize the server.
@@ -93,10 +102,10 @@ public:
     /**
      * Send a response containing binary data.
      */
-    void send_response(struct evhttp_request* request, 
-                       const char* response,
-                       size_t response_size,
-                       int response_code = HTTP_OK);
+    void send_response_data(struct evhttp_request* request, 
+                            const char* response,
+                            size_t response_size,
+                            int response_code = HTTP_OK);
     
     /// Callback for the evhttp event handler to be provided to the 
     /// evhttp object.  Not for external use.

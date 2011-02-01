@@ -63,7 +63,7 @@ public:
      * Returns true if there were no problems; false if the initialization
      * failed.
      */
-    bool initialize();
+    bool initialize(const std::string& template_root);
     
     /*================ Page request handlers =====================*/
     /**
@@ -119,7 +119,14 @@ private:
     std::string template_path(const std::string& path) {
         return template_root_ + path;
     }
-
+    
+    /// Insert page content into the main page layout.
+    std::string insert_into_main_layout(const std::string& extra_scripts,
+                                        const std::string& content);
+    
+    /// Insert page content into the main page layout from a content file.
+    std::string insert_into_main_layout(const std::string& content_file);
+    
     /// The main server responsible for the requests and responses.
     boost::shared_ptr<HttpServer> server_;
     
@@ -149,6 +156,9 @@ private:
     
     /// Cached About page.
     std::string about_page_;
+
+    /// Cached Fine Print page.
+    std::string fine_print_page_;
 };
 
 } /* namespace isaword */

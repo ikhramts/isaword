@@ -62,8 +62,8 @@ const size_t PageHandler::kDefaultMaxWordLength;
  * Returns true if there were no problems; false if the initialization
  * failed.
  */
-bool PageHandler::initialize() {
-    template_cache_ = boost::shared_ptr<FileCache>(new FileCache());
+bool PageHandler::initialize(const std::string& resource_root) {
+    template_cache_ = boost::shared_ptr<FileCache>(new FileCache(resource_root));
     page_buffer_ = shared_array<char>(new char[page_buffer_size_]);
     
     // Create the descriptions of lists of words to keep track of.
@@ -98,30 +98,18 @@ bool PageHandler::initialize() {
     
     //Create the word picker.
     word_picker_ = shared_ptr<WordPicker>(new WordPicker(index_descriptions_));
-    bool has_initialized_word_picker = word_picker_->initialize("dictionaries/owl2.txt");
+    bool has_initialized_word_picker = 
+        word_picker_->initialize(resource_root + "dictionaries/owl2.txt");
     
     //Build vairous templates.
     main_page_template_ =  this->build_main_page_template();
-    
-    shared_array<char> main_layout;
-    size_t main_layout_size = 0;
-    template_cache_->get(this->template_path("templates/main-layout.html"), 
-                         main_layout,
-                         &main_layout_size);
-
-    shared_array<char> about_content;
-    size_t about_content_size = 0;
-    template_cache_->get(this->template_path("templates/about.html"), 
-                         about_content,
-                         &about_content_size);
-    
-    shared_array<char> about_page(new char[main_layout_size + about_content_size]);
-    sprintf(about_page.get(), main_layout.get(), "", about_content.get());
-    about_page_ = about_page.get();
+    about_page_ = this->insert_into_main_layout("templates/about.html");
+    fine_print_page_ = this->insert_into_main_layout("templates/fine-print.html");
     
     //Attach to the server.
     server_->add_url_handler("/", &main_page, (void*) this);
-    server_->add_url_handler("/about", &about, (void*) this);
+    server_->add_url_handler("/about/?", &about, (void*) this);
+    server_->add_url_handler("/fine_print/?", &fine_print, (void*) this);
     server_->add_url_handler("/words/[a-z0-9/_]+", &words, (void*) this);
     return has_initialized_word_picker;
 }
@@ -142,7 +130,10 @@ void PageHandler::main_page(struct evhttp_request* request, void* page_handler_p
     
     //Return the page.
     response_set_never_cache(request);
-    this_->server_->send_response(request, this_->page_buffer_.get(), u_page_size, HTTP_OK);
+    this_->server_->send_response_data(request, 
+                                       this_->page_buffer_.get(), 
+                                       u_page_size, 
+                                       HTTP_OK);
 }
 
 /**
@@ -158,7 +149,9 @@ void PageHandler::about(struct evhttp_request* request, void* page_handler_ptr) 
  * Display the Fine Print.
  */
 void PageHandler::fine_print(struct evhttp_request* request, void* page_handler_ptr) {
-    //TODO: implement.
+    PageHandler* this_ = (PageHandler*) page_handler_ptr;
+    response_set_never_cache(request);
+    this_->server_->send_response(request, this_->fine_print_page_, HTTP_OK);
 }
 
 /**
@@ -382,14 +375,12 @@ std::string PageHandler::build_main_page_template() {
     
     // Insert the wort type selector piece into the content for the
     // main page.
-    size_t main_content_chars = 0;
     shared_array<char> main_content_template;
-    
+    size_t main_content_chars;
     const bool got_content_template = this->template_cache_->get(
                             this->template_path("templates/main.html"), 
                             main_content_template,
                             &main_content_chars);
-    
     
     if (!got_content_template) {
         std::cout << "Could not find template at templates/main.html"
@@ -398,34 +389,60 @@ std::string PageHandler::build_main_page_template() {
     }
     
     shared_array<char> main_content(new char[main_content_chars + word_type_selector.length() + 1]);
-    const size_t content_chars = 
-        sprintf(main_content.get(), 
-                main_content_template.get(), 
-                kDefaultMinWordLength,
-                kDefaultMaxWordLength,
-                word_type_selector.c_str()); 
+    sprintf(main_content.get(), 
+            main_content_template.get(), 
+            kDefaultMinWordLength,
+            kDefaultMaxWordLength,
+            word_type_selector.c_str()); 
     
     // Insert the content of the main page into the general page layout.
+    return this->insert_into_main_layout("%s", main_content.get());
+}
+
+/// Insert page content into the main page layout.
+std::string PageHandler::insert_into_main_layout(const std::string& extra_scripts,
+                                                 const std::string& content) {
     size_t layout_chars = 0;
     shared_array<char> layout_template;
-    
+
     const bool got_layout_template = this->template_cache_->get(
                             this->template_path("templates/main-layout.html"), 
                             layout_template,
                             &layout_chars);
     
-    
     if (!got_layout_template) {
         std::cout << "Could not find template at templates/main-layout.html"
                   << std::endl;
+        std::string empty_string;
         return empty_string;
     }
     
-    shared_array<char> main_page_template(new char[layout_chars + content_chars]);
-    sprintf(main_page_template.get(), layout_template.get(), "%s", main_content.get()); 
+    const size_t page_length = layout_chars + extra_scripts.length() + content.length();
+    shared_array<char> sz_page(new char[page_length]);
+    sprintf(sz_page.get(), 
+            layout_template.get(), 
+            extra_scripts.c_str(), 
+            content.c_str()); 
     
-    std::string s_main_page_template(main_page_template.get());
-    return s_main_page_template;
+    std::string page(sz_page.get());
+    return page;
+}
+
+/// Insert page content into the main page layout from a content file.
+std::string PageHandler::insert_into_main_layout(const std::string& content_file) {
+    shared_array<char> content;
+    const bool found = template_cache_->get(this->template_path(content_file), 
+                                            content,
+                                            NULL /* bytes of data output */);
+    
+    if (!found) {
+        std::cout << "Could not find page content at " << content_file
+                  << std::endl;
+        std::string empty_string;
+        return empty_string;
+    }
+    
+    return this->insert_into_main_layout("", content.get());
 }
 
 } /* namespace isaword */

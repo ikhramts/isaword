@@ -524,7 +524,8 @@ BOOST_AUTO_TEST_SUITE_END()
 class FileCacheFixture {
 public:
 
-    FileCacheFixture() {
+    FileCacheFixture()
+    : file_cache("") {
         // Initialize the main variables.
         starting_data = "cNlrkY2U4ZSKg5O83yQy";
         new_data = "Ceg0zBB8qY";
@@ -538,6 +539,13 @@ public:
         file.open(file_name.c_str());
         file << starting_data;
         file.close();
+        
+        // Construct the path for the directory one above the
+        // current one.
+        boost::filesystem::path parent_path(current_path<path>().parent_path());
+        one_up_path = parent_path.string();
+        
+        one_up_file_name = "test/" + file_name;
     }
     
     ~FileCacheFixture() {
@@ -556,6 +564,9 @@ public:
     shared_array<char> empty_ptr;
     
     FileCache file_cache;
+    
+    std::string one_up_path;
+    std::string one_up_file_name;
 };
 
 const size_t FileCacheFixture::starting_data_size;
@@ -687,6 +698,23 @@ BOOST_AUTO_TEST_CASE(get_file) {
 
 BOOST_AUTO_TEST_CASE(get_file_no_data_size) {
     BOOST_CHECK(file_cache.get(file_name, data));
+    BOOST_REQUIRE_NE(data, empty_ptr);
+    BOOST_CHECK_EQUAL(memcmp(starting_data.c_str(), data.get(), starting_data_size), 0);
+    
+    BOOST_CHECK_EQUAL(data[starting_data_size], '\0');
+}
+
+BOOST_AUTO_TEST_CASE(set_file_root) {
+    file_cache.set_file_root("test");
+    BOOST_CHECK_EQUAL(file_cache.file_root(), "test/");
+    
+    file_cache.set_file_root("toast/");
+    BOOST_CHECK_EQUAL(file_cache.file_root(), "toast/");
+}
+
+BOOST_AUTO_TEST_CASE(set_file_root_get_file) {
+    file_cache.set_file_root(one_up_path);
+    BOOST_CHECK(file_cache.get(one_up_file_name, data));
     BOOST_REQUIRE_NE(data, empty_ptr);
     BOOST_CHECK_EQUAL(memcmp(starting_data.c_str(), data.get(), starting_data_size), 0);
     

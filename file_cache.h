@@ -53,13 +53,10 @@ public:
      */
     static const time_t kDefaultExpirationPeriod = 60;
     
-    FileCache()
-    : expiration_period_(kDefaultExpirationPeriod) {
-        cached_files_.set_empty_key("");
-    }
-    
-    FileCache(time_t expiration_period)
-    : expiration_period_(expiration_period) {
+    FileCache(const std::string& file_root,
+              time_t expiration_period = kDefaultExpirationPeriod)
+    : expiration_period_(expiration_period),
+      file_root_(file_root) {
         cached_files_.set_empty_key("");
     }
     
@@ -95,7 +92,16 @@ public:
     
     /// Set the cache expiration period.
     void set_expiration_period(time_t period)       {expiration_period_ = period;}
-
+    
+    /// Get the base path for all files.
+    std::string file_root() const                   {return file_root_;}
+    
+    /// Set the directory relative to which all file paths will 
+    /// be resolved.  This should not be used after the first call 
+    /// to get().  If the provided directory name does not have a 
+    /// trailing slash, it will be automatically added.
+    void set_file_root(const std::string& root);
+    
 private:
     typedef google::dense_hash_map<std::string, 
                                    CachedFilePtr, 
@@ -108,6 +114,9 @@ private:
     
     /// Cache expiration period.
     time_t expiration_period_;
+    
+    /// Root directory for the files to be cached.
+    std::string file_root_;
 };
 
 

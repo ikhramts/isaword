@@ -84,7 +84,7 @@ FileHandler::FileRootStatusCode FileHandler::initialize(const std::string& file_
         boost::regex("^[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]*)*(/[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]*)*)*$");
     
     // Initialize the file cache.
-    file_cache_ = shared_ptr<FileCache>(new FileCache());
+    file_cache_ = shared_ptr<FileCache>(new FileCache(file_root));
     file_cache_->set_expiration_period(cache_period_sec_);
     std::stringstream cache_control;
     cache_control << "public, max-age=" << cache_period_sec_;
@@ -142,9 +142,9 @@ void FileHandler::handle_request(struct evhttp_request* request) {
     }
     
     //Attempt to load the file.
-    std::string full_path = file_root_ + relative_file_path;
+    //std::string full_path = file_root_ + relative_file_path;
     CachedFilePtr cached_file;
-    const bool has_loaded = file_cache_->get_cached_object(full_path, cached_file);
+    const bool has_loaded = file_cache_->get_cached_object(relative_file_path, cached_file);
     
     if (!has_loaded) {
         // No such file.
@@ -203,9 +203,8 @@ void FileHandler::handle_request(struct evhttp_request* request) {
     // Respond with the file data..
     shared_array<char> file_data = cached_file->data();
     size_t data_size = cached_file->data_size();
-    server_->send_response(request, file_data.get(), data_size, HTTP_OK);
+    server_->send_response_data(request, file_data.get(), data_size, HTTP_OK);
 }
-
 
 /**
  * Read a file.
@@ -231,17 +230,6 @@ bool FileHandler::read_file(const std::string& relative_file_path,
     //Get the full file path.
     std::string file_path = file_root_ + relative_file_path;
     
-    //Check the file size, and whether it exists.
-    //TODO: deal with cases when the files are large.
-//    struct stat stat_buffer;
-//    int status = stat(file_path.c_str(), &stat_buffer);
-//   
-//    if (status != 0 || S_ISDIR(stat_buffer.st_mode)) {
-//        return false;
-//    }
-//    
-//    size_t file_size = stat_buffer.st_size;
-    
     //Attempt to open the file.
     std::ifstream file(file_path.c_str());
     if (!file.good()) {
@@ -263,7 +251,5 @@ bool FileHandler::read_file(const std::string& relative_file_path,
 bool FileHandler::is_permitted_file_path(const std::string& file_path) const {
     return regex_match(file_path, allowed_path_pattern_);
 }
-
-
 
 }

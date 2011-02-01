@@ -27,13 +27,14 @@ TEST_DIR := test
 # --- Main components.
 BIN := isawordd
 SRC := http_server.cpp http_utils.cpp file_handler.cpp views.cpp \
-       file_cache.cpp word_picker.cpp generator/pseudoword_generator.cpp
+       file_cache.cpp word_picker.cpp generator/pseudoword_generator.cpp \
+	   daemonize.cpp
 
 # --- Settings
 CFLAGS := -W -Wall -g -L$(BOOST_LIB_DIR)
 LDFLAGS := -Wall
-LIBS := -lboost_regex $(LIBEVENT)
-TEST_LIBS := -lboost_unit_test_framework -lboost_filesystem
+LIBS := -lboost_regex -lboost_program_options -lboost_filesystem $(LIBEVENT)
+TEST_LIBS := -lboost_unit_test_framework
 
 # --- Ingredients
 TEST_BIN := $(TEST_DIR)/test_$(BIN)

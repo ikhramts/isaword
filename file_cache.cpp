@@ -75,7 +75,8 @@ bool FileCache::get_cached_object(const std::string& file_path,
     
     if (it == cached_files_.end()) {
         //Start caching the file.
-        cached_file = CachedFilePtr(new CachedFile(file_path, expiration_period_));
+        std::string full_path(file_root_ + file_path);
+        cached_file = CachedFilePtr(new CachedFile(full_path, expiration_period_));
         cached_files_[file_path] = cached_file;
     
     } else {
@@ -86,6 +87,18 @@ bool FileCache::get_cached_object(const std::string& file_path,
     const bool found_file = cached_file->refresh_if_expired();
     
     return found_file;
+}
+
+/// Set the directory relative to which all file paths will 
+/// be resolved.  This should not be used after the first call 
+/// to get().  If the provided directory name does not have a 
+/// trailing slash, it will be automatically added.
+void FileCache::set_file_root(const std::string& root) {
+    file_root_ = root;
+    
+    if (file_root_[file_root_.length() - 1] != '/') {
+        file_root_ += '/';
+    }
 }
     
 /*---------------------------------------------------------

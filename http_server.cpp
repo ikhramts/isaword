@@ -95,7 +95,8 @@ void HttpServer::handle_request(struct evhttp_request* request) {
     //Find a callback associated with the URI request.
     std::string uri(request_uri_path(request));
     bool has_handled_request = false;
-
+    
+    // Check the request URI and invoke the correct handler.
     for (size_t i = 0; i < uri_handlers_.size(); ++i) {
         if (uri_handlers_[i]->handle_if_matched(uri, request)) {
             has_handled_request = true;
@@ -103,6 +104,7 @@ void HttpServer::handle_request(struct evhttp_request* request) {
         }
     }
     
+    // No handler is registered for the current URI; return 404.
     if (!has_handled_request) {
         //Check whether the user has provided a 404 handler.
         if (not_found_handler_->handler() != NULL) {
@@ -127,11 +129,6 @@ void HttpServer::handle_request(struct evhttp_request* request) {
             message << "</body></html>";
             
             this->send_response(request, message.str(), HTTP_NOTFOUND);
-            std::string s_message(message.str());
-            struct evbuffer* buffer = evbuffer_new();
-            evbuffer_add(buffer, s_message.c_str(), s_message.length());
-            evhttp_send_reply(request, HTTP_NOTFOUND, "NOT FOUND", buffer);
-            evbuffer_free(buffer);
         }
     }
 }
@@ -143,16 +140,16 @@ void HttpServer::handle_request(struct evhttp_request* request) {
 void HttpServer::send_response(struct evhttp_request* request, 
                                const std::string& response,
                                int response_code) {
-    this->send_response(request, response.c_str(), response.length(), response_code);
+    this->send_response_data(request, response.c_str(), response.length(), response_code);
 }
 
 /**
  * Send a response containing binary data.
  */
-void HttpServer::send_response(struct evhttp_request* request, 
-                               const char* response,
-                               size_t response_size,
-                               int response_code) {
+void HttpServer::send_response_data(struct evhttp_request* request, 
+                                    const char* response,
+                                    size_t response_size,
+                                    int response_code) {
     //Prepare the response body.
     struct evbuffer* buffer = evbuffer_new();
     evbuffer_add(buffer, response, response_size);
@@ -185,7 +182,6 @@ const char* HttpServer::response_string(int response_code) const {
     
     return status_string;
 }
-
 
 /*---------------------------------------------------------
                     UriHandler class.

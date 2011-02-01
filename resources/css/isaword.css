@@ -18,27 +18,27 @@
 
  /****************** General Style Info *********************/
 * {margin:0; padding:0; 
-    font-family: Verdana, 'Bitsream Vera Sans', helvetica, arial, sans-serif;
+    font-family: /*Verdana, 'Bitsream Vera Sans', helvetica,*/ arial, sans-serif;
 }
 
 html { background: #fff;
 }
 body {color: #000; font-family:Verdana, 'Bitsream Vera Sans', helvetica, arial, sans-serif; margin: 0;
-    font-size: 12px; line-height: 19px;}
+    font-size: 14px; line-height: 19px;}
 
 p {margin-top: 20px; margin-bottom: 20px;}
 
 a {/* color: #003d4c;*/ color: #000; text-decoration: underline; /*font-weight: bold;*/}
-a:hover {color: #5E8206; text-decoration:underline; }
+a:hover {color: #a00; text-decoration:underline; }
 a img { border:none; }
 
 img {border: none;}
 
 h1, h2, h3, h4 { font-weight: normal; }
-h2 {/*color: #709E20;*/ color: #5E8206; font-family:'Myriad Pro','lucida grande', helvetica, arial, sans-serif;
-	font-size: 300%; font-weight: bold; margin: 15px 0 15px 0; clear:both; line-height: 100%;
+h2 {/*color: #709E20;*/ color: #a00; font-family:'Myriad Pro','lucida grande', helvetica, arial, sans-serif;
+	font-size: 20pt; font-weight: bold; margin: 30px 0 30px 0; clear:both; line-height: 100%;
     font-family: helvetica, arial, sans-serif;}
-h3 {color: #603813; /*font-family: 'lucida sans', arial, sans-serif*/;  letter-spacing: -0.03em;
+h3 {color: #000; /*font-family: 'lucida sans', arial, sans-serif*/;  letter-spacing: -0.03em;
 	font-size: 155%; margin: 10px 0 15px 0; 
     font-family: helvetica, arial, sans-serif;}
 h4 {color: #603813; font-weight: normal; padding-top: 0.5em;}
@@ -46,14 +46,24 @@ h4 {color: #603813; font-weight: normal; padding-top: 0.5em;}
 ul, ol {margin: 0 30px;}
 
 /****************** Layout *********************/
-#header {width: 100%; height: 93px; margin: 0 auto; 
-    background: #fff url('/resources/css/header-bg-grey-personalized.png') repeat-x;}
-#header h1 {width: 850px; height: 93px; margin: 0 auto; padding: 0px;}
-#header h1 a {display: block; width: 850px; height: 93px; margin: 0; padding: 0;
-    /*background: #AADD58 url('/resources/css/header-transparent.png') no-repeat;*/
-    background:  url('/resources/css/header-grey-shadows-personalized.png') no-repeat;
-    /*text-indent: -9999px;*/}
-#header h2 {display: none;}
+#header {width: 100%; height: 93px; background: #fff; border-bottom: 1px dotted;}
+#header-content {width: 850px; margin: 0 auto;}
+#title {display: block; float: left; height: 93px; margin: 15px 15px 0 0;}
+#title h1 {font-family: }
+#title h1 a, #title h1 a span {color: black; font-size: 35pt; text-decoration: none;
+    font-family: minion-pro-1, minion-pro-2, 'Times New Roman', Georgia, serif;
+    font-weight: bold;}
+#title .letter-a {color: #a00;}
+#title .dot-com {color: #888; font-size: 25pt; }
+#title h2 {color: #888; font-size: 15pt; margin: 15px 0;}
+/*#header-content {width: 850px; height: 93px; margin: 0 auto; padding: 0px;}
+#header h1 {display: block; float: left; height: 93px; margin: 0; padding: 0px;}*/
+/*#header h1 a {display: block; float: left; height: 93px; margin: 0; padding: 0;
+    }*/
+/*#header h2 {display: none;}*/
+
+.nav {display: block; float: right; margin: 15px; width: auto; font-size: 12pt;}
+.nav a {text-decoration: none; margin: 5px;}
 
 #container {min-width: 850px; text-align: left; background: #fff;}
 #content{width: 850px; margin: 0 auto; clear: both; color: #333; padding: 0; /*overflow: auto;*/ 
@@ -65,6 +75,8 @@ ul, ol {margin: 0 30px;}
 #footer-content p {margin: 0;}
 
 /****************** Common Elements *********************/
+ol li {margin: 10px 0;}
+
 /* Tables */
 table {clear: both; width: 750px; border-collapse: collapse;}
 
@@ -105,7 +117,7 @@ form .checkbox ul.errorlist {margin-left: 0px;}
 .notice {background: #FFEA94; color: #000; display: block; font-family: Courier, monospace;
     font-size: 120%; line-height: 140%; padding: 0.8em; margin: 1em 0; }
 .success {background: green; color: #fff; }
-.footnote {font-size: 8pt;}
+.footnote {font-size: 8pt; margin: 0;}
 .email-address {color: #603813; font-style: italic;}
 .hidden {display: none;}
 .clearboth {clear: both;}
@@ -119,8 +131,23 @@ div.floating-image p {margin: 0 0 0 5px; font-size: 80%;}
 
 p.white {color:#fff;}
 
+input.smallnum {width: 25px;}
+
 /************************ Elements on main page **************************/
 div.main {display: block; float: left; width: 600px;}
+
+.controls {height: 40px;}
+.controls h3 {display: block; float: left; margin-bottom: 10px;}
+#guess {display: block; float: left; margin: 11px  0 0 10px;}
+#guess a {text-decoration: none; font-size: 13pt; margin: 0 5px; font-weight: bold;}
+#guess a.yes {color: /*#080*/#7FB87F;}
+#guess a.yes:hover {color: /*#0b0*/#080;}
+#guess a.no {color: /*#a00*/#DB5A5A;}
+#guess a.no:hover {color: /*#e00*/#a00;}
+#guess a.skip {color: #888;}
+#guess a.skip:hover {color: #444;}
+#whats-a-valid-word {display: block; float:right; width: auto; 
+    font-size: 8pt; margin: 10px;}
 
 #words-to-guess {margin: 0 0 40px 0; width: 580px; text-align: center; }
 .word-container {display: block; float:left; height: 60px; width: 580px; 
@@ -130,16 +157,20 @@ div.main {display: block; float: left; width: 600px;}
 .word-container div  span {vertical-align: middle;}
 
 #words-to-guess .was-correct {width: 30px;}
-#words-to-guess .was-correct.true {background: green;}
-#words-to-guess .was-correct.false {background: red;}
-#words-to-guess .word {width: 130px; font-family: verdana; font-size: 14pt; font-weight: bolder;}
-#words-to-guess .is-a-word {color: red; width: 80px;}
+#words-to-guess .was-correct.true {
+    background: url(/resources/css/check-mark.png) no-repeat center;}
+#words-to-guess .was-correct.false {
+    background: url(/resources/css/x-mark.png) no-repeat center;}
+#words-to-guess .word, #words-to-guess .word span {width: 200px; 
+    font-family: minion-pro-1, minion-pro-2, 'Times New Roman', Georgia, serif; 
+    font-size: 16pt; font-weight: bolder;}
+#words-to-guess .is-a-word {color: #a00; width: 80px;}
 #words-to-guess .is-a-word .is-valid {color: green;}
-#words-to-guess .description {text-align: left; width:340px;}
+#words-to-guess .description {text-align: left; width: 270px;}
 
-div.settings {display: block; float: right; width: 225px; background: #A7CAD1;
+div.settings {display: block; float: right; width: 225px; /*background: #A7CAD1;*/
     padding: 10px; margin: 10px 0 10px 0; 
-    border: 1px solid #92ABB0; border-top-color: #B6D5DB; border-left-color: #B6D5DB;
+    border: 1px dotted #92ABB0; /*border-top-color: #B6D5DB; border-left-color: #B6D5DB;*/
     border-bottom-left-radius: 7px 7px; border-bottom-right-radius: 7px 7px;
     border-top-left-radius: 7px 7px; border-top-right-radius: 7px 7px;}
 
