@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
     server->initialize();
     
     // This part of the server is responsible for loading files.
-    shared_ptr<FileHandler> file_handler(new FileHandler(0 /* cache period */));
+    shared_ptr<FileHandler> file_handler(new FileHandler(3600 /* cache period */));
     file_handler->initialize(resource_dir + "resources/");
     file_handler->attach_to_server(server, "/resources/");
     

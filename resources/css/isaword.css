@@ -66,9 +66,9 @@ ul, ol {margin: 0 30px;}
 .nav a {text-decoration: none; margin: 5px;}
 
 #container {min-width: 850px; text-align: left; background: #fff;}
-#content{width: 850px; margin: 0 auto; clear: both; color: #333; padding: 0; /*overflow: auto;*/ 
+#content{width: 860px; margin: 0 auto; clear: both; color: #333; padding: 0; /*overflow: auto;*/ 
 	background: #fff; min-height: 400px;}
-
+    
 #footer {clear: both; width: 100%; margin: 0 0; background: #ddd; 
     position: fixed; bottom: 0px;}
 #footer-content {width: 850px; margin: 0 auto; padding: 10px; text-align: center; color: #666;}
@@ -122,8 +122,9 @@ form .checkbox ul.errorlist {margin-left: 0px;}
 .hidden {display: none;}
 .clearboth {clear: both;}
 
+div.anchored, #content div.anchored {padding: 1px; margin-left: 0; margin-right: 0;}
 .errorlist {color: red;}
-.highlighted{background: #FFEA94;}
+.highlighted{background: #ddd;}
 
 /* Floating images. */
 div.floating-image {display: block; float: right; width: 345px; margin: 0 0 25px 25px;}
@@ -150,6 +151,7 @@ div.main {display: block; float: left; width: 600px;}
     font-size: 8pt; margin: 10px;}
 
 #words-to-guess {margin: 0 0 40px 0; width: 580px; text-align: center; }
+#words-to-guess div.word-container {margin: 0;}
 .word-container {display: block; float:left; height: 60px; width: 580px; 
     vertical-align: middle;}
 .word-container div {display: table-cell; /*float:left;*/ height: 60px; 

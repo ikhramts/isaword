@@ -21,6 +21,7 @@
 #include <sstream>
 #include <vector>
 #include <iostream>
+#include <signal.h>
 
 #include <event2/event.h>
 #include <event2/http.h>
@@ -83,6 +84,18 @@ void HttpServer::set_not_found_handler(void(*callback)(struct evhttp_request*, v
  */
 bool HttpServer::serve(const std::string& address, u_short port) {
     if (!evhttp_bind_socket(server_, address.c_str(), port)) {
+        // Set the process to ignore SIGPIPE, which can be produced
+        // if libevent will write to a closed socket.  Ideally
+        // we'd do this per socket, but libevent doesn't
+        // provide a way to get the socket assosiated with a 
+        // connection.
+        struct sigaction ingore_sigpipe_action;
+        ingore_sigpipe_action.sa_handler = SIG_IGN;
+        sigemptyset(&ingore_sigpipe_action.sa_mask);
+        ingore_sigpipe_action.sa_flags = 0;
+        sigaction(SIGPIPE, &ingore_sigpipe_action, NULL);
+        
+        // Start the main event loop.
         event_base_dispatch(event_base_);
         return true;
     }

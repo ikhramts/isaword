@@ -16,6 +16,9 @@
  * under the License.
  */
  
+/* *******************************************************
+ * Game logic
+ */
 var nextWordIndex = 0;
 
 function reloadWordsFromServer(refreshWord) {
@@ -118,22 +121,62 @@ function processGuess(guess) {
 function removeOldGuesses() {
     var maxOldGuesses = $('#history-size').val();
     maxOldGuesses = Math.max(maxOldGuesses, 1);
-    $('#words-to-guess div.float-wrap:gt(' + maxOldGuesses + ')').remove();
+    var oldGuesses = $('#words-to-guess div.float-wrap:gt(' + maxOldGuesses + ')');
+    oldGuesses.fadeTo(300, 0.01, function() {
+        oldGuesses.remove();
+    });
 }
 
+/* *******************************************************
+ * Highlight the div selected by the URL anchor
+ */
+function highlightAnchoredDiv(divId) {
+    //Unhighlight other anchorable divs.
+    $('div.anchored').removeClass('highlighted');
+    
+    //Highlight the selected div.
+    $(divId).closest('div.anchored').addClass('highlighted');
+}
+
+
+/* *******************************************************
+ * Set up the page.
+ */
 $(document).ready(function(){
-    showNextWord();
-    
-    $('#guess a').click(function() {
-        processGuess($(this).text());
-        return false;
+    // If we are on the main page, set it up.
+    if (typeof(words) != 'undefined') {
+        showNextWord();
+        
+        $('#guess a').click(function() {
+            processGuess($(this).text());
+            return false;
+        });
+        
+        $('#word-type input.word-type, #from-length, #to-length').change(function() {
+            reloadWordsFromServer(true /* refresh the next word */);
+        });
+        
+        $('#history-size').change(function() {
+            removeOldGuesses();
+        });
+    }
+
+    //Convert the emails to proper form.
+    $('#content').find('span.email-address').each(function(index, element) {
+        var thisElement = $(this);
+        var address = thisElement.text();
+        
+        if (!address.match(/@/g)) {
+            address += '@isaword.com';
+        }
+        
+        thisElement.text(address);
     });
     
-    $('#word-type input.word-type, #from-length, #to-length').change(function() {
-        reloadWordsFromServer(true /* refresh the next word */);
-    });
-    
-    $('#history-size').change(function() {
-        removeOldGuesses();
+    //Set up highlighting for all links that lead to local anchors.
+    highlightAnchoredDiv(self.document.location.hash);
+
+    $("a[href^='#']").click(function() {
+        highlightAnchoredDiv($(this).attr('href'));
     });
 });
