@@ -105,12 +105,14 @@ bool PageHandler::initialize(const std::string& resource_root) {
     main_page_template_ =  this->build_main_page_template();
     about_page_ = this->insert_into_main_layout("templates/about.html");
     fine_print_page_ = this->insert_into_main_layout("templates/fine-print.html");
+    not_found_template_ = this->insert_into_main_layout("templates/404.html");
     
     //Attach to the server.
     server_->add_url_handler("/", &main_page, (void*) this);
     server_->add_url_handler("/about/?", &about, (void*) this);
     server_->add_url_handler("/fine_print/?", &fine_print, (void*) this);
     server_->add_url_handler("/words/[a-z0-9/_]+", &words, (void*) this);
+    server_->set_not_found_handler(&not_found, this);
     return has_initialized_word_picker;
 }
 
@@ -175,6 +177,20 @@ void PageHandler::words(struct evhttp_request* request, void* page_handler_ptr) 
  * Display the 404 Not Found page.
  */
 void PageHandler::not_found(struct evhttp_request* request, void* page_handler_ptr) {
+    PageHandler* this_ = (PageHandler*) page_handler_ptr;
+    std::string uri = request_uri_path(request);
+    
+    //Compose the not found page.
+    shared_array<char> escaped_uri(evhttp_htmlescape(uri.c_str()));
+    const int page_size = 
+        sprintf(this_->page_buffer_.get(), this_->not_found_template_.c_str(), escaped_uri.get());
+    const size_t u_page_size = static_cast<size_t>(page_size);
+    
+    response_cache_public(request, 3600 /* sec */);
+    this_->server_->send_response_data(request, 
+                                       this_->page_buffer_.get(), 
+                                       u_page_size, 
+                                       HTTP_OK);
 }
 
 /*================ Useful functions =====================*/

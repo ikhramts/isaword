@@ -56,6 +56,8 @@ time_t string_to_time(const char* time_string);
 /// Set response to never be cached.
 void response_set_never_cache(struct evhttp_request* request);
 
+/// Set the cache time for the response (in sec).
+void response_cache_public(struct evhttp_request* request, size_t sec);
 
 } /* namespace isaword */
 #endif

@@ -159,6 +159,9 @@ private:
 
     /// Cached Fine Print page.
     std::string fine_print_page_;
+
+    /// Cached Fine Print page.
+    std::string not_found_template_;
 };
 
 } /* namespace isaword */

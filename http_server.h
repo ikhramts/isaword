@@ -41,16 +41,6 @@ class UriHandler;
 /// The main server class.
 class HttpServer {
 public:
-    /// Maximum number of simultaneous requests.
-    static const size_t kMaxRequests = 500;
-    
-    /// Possible overload handling strategies.
-    enum OverloadHandlingStrategy {
-        DO_NOTHING,
-        RETURN_503,
-        DROP_REQUEST
-    };
-    
     /// Create an HTTP server.
     HttpServer()
     : event_base_(NULL), 
