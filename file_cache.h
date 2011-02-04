@@ -67,7 +67,8 @@ public:
      * zero terminated.  The second optional argument can be used to return
      * the number of bytes of data returned.
      *
-     * The function will return true on success, false on failure.
+     * @return true if the file exists at the time of latest refresh; 
+     * false otherwise.
      */
     bool get(const std::string& file_path, 
              boost::shared_array<char>& data, 
@@ -130,17 +131,8 @@ public:
      */
     static const time_t kDefaultExpirationPeriod = 60;
     
-    CachedFile(const std::string& file_path)
-    : data_(NULL), 
-      data_size_(0), 
-      data_capacity_(0), 
-      expiration_time_(0),
-      expiration_period_(kDefaultExpirationPeriod),
-      last_modified_(0),
-      file_path_(file_path) {
-    }
-    
-    CachedFile(const std::string& file_path, time_t expiration_period)
+    CachedFile(const std::string& file_path, 
+               time_t expiration_period = kDefaultExpirationPeriod)
     : data_(NULL), 
       data_size_(0), 
       data_capacity_(0), 
@@ -158,15 +150,18 @@ public:
      * terminated to allow string operations; in some cases the '\0' character 
      * may be past the limit returned in the size argument.
      * 
-     * Returns false if the file does not exist or has been deleted.
+     * @return true if the data has not yet expired or has been refreshed
+     * successfully; false if the file is gone or not accessible.  In case 
+     * of failure all data will be removed from cache.
      */
     bool get(boost::shared_array<char>& data, size_t& size);
     
     /**
      * Refresh the cached data if it has expired.
-     * @return true on success, false on failure (e.g. if the file is gone
-     * or not accessible).  In case of failure all data will be removed from
-     * cache.
+     *
+     * @return true if the data has not yet expired or has been refreshed
+     * successfully; false if the file is gone or not accessible.  In case 
+     * of failure all data will be removed from cache.
      */
     bool refresh_if_expired();
     

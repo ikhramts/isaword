@@ -64,21 +64,18 @@ public:
      */
     FileHandler(size_t cache_period_sec = kDefaultCachePeriodSec)
     : is_attached_(false),
-    file_read_buffer_(NULL),
     cache_period_sec_(cache_period_sec) {
     }
     
-    ~FileHandler();
-    
     /**
-     * Set the directory to serve the files from.
+     * Set the directory to serve the files from and perform
+     * some of the more complex initializations.
      */
     FileRootStatusCode initialize(const std::string& file_root);
     
     /**
      * Add the file handler to the HTTP server, setting it to handle files
      * from a certain url root (e.g. www.someplace.com/url_root/).
-     * Should do proper error checking; for now, it doesn't.
      */
     ServerAttachStatusCode attach_to_server(boost::shared_ptr<HttpServer> server, 
                          const std::string& url_root);
@@ -94,22 +91,6 @@ public:
      * Handle a file request.
      */
     void handle_request(struct evhttp_request* request);
-    
-    /**
-     * Read a file.
-     * @param relative_file_path the path of the file to read, 
-     * relative to the file_root().
-     * @param buffer where the file contents will be placed.
-     * @param buffer_size available buffer size.
-     * @param bytes_read a variable where the total number of 
-     * bytes read will be placed.
-     * @return true on success, false if the file did not exist or 
-     * was not accessible.
-     */
-    bool read_file(const std::string& relative_file_path, 
-                   char* buffer, 
-                   const std::streamsize buffer_size, 
-                   size_t& bytes_read);
     
     /**
      * Check whether the file path is a permitted path (e.g. not
@@ -141,13 +122,6 @@ private:
     bool is_attached_;
     std::string url_root_;
     std::string cache_control_;
-    
-    /// Number of bytes to read from file in a single read.
-    /// This is a pretty arbitrary value, not sure whether this is best.
-    static const std::streamsize file_read_buffer_size_ = 524288; // 0.5 MB
-    
-    /// Buffer for reading files.
-    char* file_read_buffer_;
     
     /// The HttpServer to which this is attached.
     boost::shared_ptr<HttpServer> server_;

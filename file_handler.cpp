@@ -47,10 +47,6 @@ using boost::shared_array;
 
 namespace isaword {
 
-FileHandler::~FileHandler() {
-    delete [] file_read_buffer_;
-}
-
 /**
  * Set the directory to serve the files from.
  */
@@ -73,11 +69,6 @@ FileHandler::FileRootStatusCode FileHandler::initialize(const std::string& file_
     //Make sure that the file root ends with '/'.
     if (file_root_[file_root_.size() - 1] != '/') {
         file_root_ += '/';
-    }
-    
-    //Initialize the file buffer if it hasn't yet been.
-    if (!file_read_buffer_) {
-        file_read_buffer_ = new char[file_read_buffer_size_];
     }
     
     allowed_path_pattern_ = 
@@ -204,43 +195,6 @@ void FileHandler::handle_request(struct evhttp_request* request) {
     shared_array<char> file_data = cached_file->data();
     size_t data_size = cached_file->data_size();
     server_->send_response_data(request, file_data.get(), data_size, HTTP_OK);
-}
-
-/**
- * Read a file.
- * @param relative_file_path the path of the file to read, 
- * relative to the file_root().
- * @param buffer where the file contents will be placed.
- * @param buffer_size available buffer size.
- * @param bytes_read a variable where the total number of 
- * bytes read will be placed.
- * @return true on success, false if the file did not exist or 
- * was not accessible.
- */
-bool FileHandler::read_file(const std::string& relative_file_path, 
-                            char* buffer,
-                            const std::streamsize buffer_size, 
-                            size_t& bytes_read) {
-    //Check whether the path is permitted (i.e. does not include backtracking
-    //through the directory tree or absolute paths).
-    if (!this->is_permitted_file_path(relative_file_path)) {
-        return false;
-    }
-    
-    //Get the full file path.
-    std::string file_path = file_root_ + relative_file_path;
-    
-    //Attempt to open the file.
-    std::ifstream file(file_path.c_str());
-    if (!file.good()) {
-        file.close();
-        bytes_read = 0;
-        return false;
-    }
-    
-    bytes_read = static_cast<size_t>(file.readsome(buffer, buffer_size));
-    file.close();
-    return true;
 }
     
 /**
