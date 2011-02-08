@@ -70,10 +70,33 @@ function showNextWord() {
         isValidElement.removeClass("is-valid");
     }
     
-    var wordDescription = wordContainer.find('.description span');
-    wordDescription.text(nextWord.description);
+    //Add the word description.  Link to Wordnik if necessary.
+    var descriptionContainer = wordContainer.find('.description span');
+    var description = nextWord.description;
+    var wordnikUrl = 'http://www.wordnik.com/words/';
+    
+    if (description.match(/^\(see \w+\)$/)) {
+        description = description.replace(/^\(see (\w+)\)$/,
+            '(see <a href="'+ wordnikUrl + '$1" target="_blank">$1</a>)');
+    
+    } else if (description == "" && nextWord.is_real) {
+        var linkedWord = nextWord.word.toLowerCase();
+        description = '(see <a href="' + wordnikUrl +
+                        linkedWord + '"  target="_blank">' + linkedWord + 
+                        '</a>)';
+    } else if (description.match(/^\w+$/)) {
+        var linkedWord = description.toLowerCase();
+        description = description = '(see <a href="' + wordnikUrl +
+                        linkedWord + '"  target="_blank">' + linkedWord + 
+                        '</a>)';
+    } else if (nextWord.is_real) {
+        description += ' (<a href="' + wordnikUrl + nextWord.word.toLowerCase() +
+                        '"   target="_blank">more</a>)';
+    }
+    
+    descriptionContainer.html(description);
     //wordDescription.fadeTo(0, 0.001);
-    wordDescription.hide();
+    descriptionContainer.hide();
     
     // Advance to the next word.
     nextWordIndex++;
@@ -90,12 +113,39 @@ function processGuess(guess) {
     var isValid = (wordContainer.find('.is-a-word span').text() == "valid");
     
     var wasCorrectContainer = wordContainer.find('.was-correct');
+    var hasGuessed = false;
+    var wasCorrect = false;
     
     if ((guess == "Yes" && isValid) || (guess == "No" && !isValid)) {
+        hasGuessed = true;
+        wasCorrect = true;
         wasCorrectContainer.addClass('true');
         
     } else if ((guess == "Yes" && !isValid) || (guess == "No" && isValid)) {
+        hasGuessed = true;
         wasCorrectContainer.addClass('false');
+    }
+    
+    //Update the score.
+    if (hasGuessed && wasCorrect) {
+        var numCorrectElement = $("#num-correct");
+        var currentStreakElement = $("#current-streak");
+        var longestStreakElement = $("#longest-streak");
+        
+        numCorrectElement.text(parseInt(numCorrectElement.text()) + 1);
+        var currentStreak = parseInt(currentStreakElement.text()) + 1;
+        currentStreakElement.text(currentStreak);
+        
+        var longestStreak = $("#longest-streak").text();
+        
+        if (currentStreak > longestStreak) {
+            longestStreakElement.text(currentStreak);
+        }
+    
+    } else if (hasGuessed && !wasCorrect) {
+        var numIncorrectElement = $("#num-incorrect");
+        numIncorrectElement.text(parseInt(numIncorrectElement.text()) + 1);
+        $("#current-streak").text('0');
     }
     
     // Display the actual answer.

@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     std::string listen_ip("0.0.0.0");
 
     if (args.count("ip")) {
-        listen_ip = args["port"].as<std::vector<std::string> >()[0];
+        listen_ip = args["ip"].as<std::vector<std::string> >()[0];
     }
     
     // Get the port to serve on.

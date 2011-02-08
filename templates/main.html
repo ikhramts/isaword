@@ -21,29 +21,36 @@
         </div>
     </div>
 </div>
-<p class="white">.</p>
-<div class="settings">
-    <h3>Type of words</h3>
-    <div id="word-type">
-        <p>
-            <input id="word-type-length" class="word-type" 
-                type="radio" name="word-type" value="length" checked />
-            <label for="word-type-length">
-                Words 
-                <input id="from-length" type="text" maxlength="2" size="2" 
-                    value="%u" class="smallnum"/> - 
-                <input id="to-length" type="text" maxlength="2"  size="2" 
-                    value="%u" class="smallnum"/>
-                letters long
-            </label>
-        </p>
-        <!-- Various word indexes; use index-description.html for each index. -->
-        %s
+<div class="right-column">
+    <div class="box score">
+        <p class="correct">Correct: <span id="num-correct">0</span></p>
+        <p class="incorrect">Incorrect: <span id="num-incorrect">0</span></p>
+        <p class="streak-info">Current Streak: <span id="current-streak">0</span></p>
+        <p class="streak-info">Longest Streak: <span id="longest-streak">0</span></p>
     </div>
-    <h3>History</h3>
-    <p>
-        Number of previous guesses to display:
-        <input id="history-size" type="text" maxlength="4"  size="3" 
-            value="20" class="smallnum"/>
-    </p>
+    <div class="box settings">
+        <h3>Type of words</h3>
+        <div id="word-type">
+            <p>
+                <input id="word-type-length" class="word-type" 
+                    type="radio" name="word-type" value="length" checked />
+                <label for="word-type-length">
+                    Words 
+                    <input id="from-length" type="text" maxlength="2" size="2" 
+                        value="%u" class="smallnum"/> - 
+                    <input id="to-length" type="text" maxlength="2"  size="2" 
+                        value="%u" class="smallnum"/>
+                    letters long
+                </label>
+            </p>
+            <!-- Various word indexes; use index-description.html for each index. -->
+            %s
+        </div>
+        <h3>History</h3>
+        <p>
+            Number of previous guesses to display:
+            <input id="history-size" type="text" maxlength="4"  size="3" 
+                value="20" class="smallnum"/>
+        </p>
+    </div>
 </div>

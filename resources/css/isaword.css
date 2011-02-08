@@ -64,10 +64,17 @@ ul, ol {margin: 0 30px;}
 
 .nav {display: block; float: right; margin: 15px; width: auto; font-size: 12pt;}
 .nav a {text-decoration: none; margin: 5px;}
+.social-link {display: block; float: right; margin-top: 10px; clear: right;}
 
 #container {min-width: 850px; text-align: left; background: #fff;}
 #content{width: 860px; margin: 0 auto; clear: both; color: #333; padding: 0; /*overflow: auto;*/ 
 	background: #fff; min-height: 400px;}
+
+.right-column {display: block; float: right; width: 225px; }
+.box {padding: 10px; margin: 10px 0 10px 0; 
+    border: 1px dotted #92ABB0; /*border-top-color: #B6D5DB; border-left-color: #B6D5DB;*/
+    border-bottom-left-radius: 7px 7px; border-bottom-right-radius: 7px 7px;
+    border-top-left-radius: 7px 7px; border-top-right-radius: 7px 7px;}
     
 #footer {clear: both; width: 100%; margin: 0 0; background: #ddd; 
     position: fixed; bottom: 0px;}
@@ -92,7 +99,6 @@ table tr.order-total td.price {font-weight: bold; border-top: double #42210B;}
 /* Forms */
 form {padding: 0;}
 form div.field-wrapper {margin-top: 10px; margin-bottom: 10px;}
-label {display: inline-block; width: 200px; }
 
 select {vertical-align: text-bottom; margin-right: 10px;}
 select[multiple=multiple] {width: 100%; }
@@ -106,6 +112,7 @@ div.radio label { margin: 0 0 6px 20px; }
 
 input[type=submit] { display: inline; padding: 2px 5px; width: auto;
     vertical-align: bottom;}
+input.smallnum {width: 25px;}
 
 textarea {font-family: courier; font-size: normal;}
 
@@ -127,12 +134,7 @@ div.anchored, #content div.anchored {padding: 1px; margin-left: 0; margin-right:
 .highlighted{background: #ddd;}
 
 /* Floating images. */
-div.floating-image {display: block; float: right; width: 345px; margin: 0 0 25px 25px;}
-div.floating-image p {margin: 0 0 0 5px; font-size: 80%;}
-
 p.white {color:#fff;}
-
-input.smallnum {width: 25px;}
 
 /************************ Elements on main page **************************/
 div.main {display: block; float: left; width: 600px;}
@@ -170,13 +172,14 @@ div.main {display: block; float: left; width: 600px;}
 #words-to-guess .is-a-word .is-valid {color: green;}
 #words-to-guess .description {text-align: left; width: 270px;}
 
-div.settings {display: block; float: right; width: 225px; /*background: #A7CAD1;*/
-    padding: 10px; margin: 10px 0 10px 0; 
-    border: 1px dotted #92ABB0; /*border-top-color: #B6D5DB; border-left-color: #B6D5DB;*/
-    border-bottom-left-radius: 7px 7px; border-bottom-right-radius: 7px 7px;
-    border-top-left-radius: 7px 7px; border-top-right-radius: 7px 7px;}
+div.settings {/*background: #A7CAD1;*/
+    }
 
 div.settings p {margin: 0;}
+.score p {margin: 0;}
+.score p span {font-weight: bold;}
+#num-correct {color: green;}
+#num-incorrect {color: #a00;}
 input.smallnum {margin: 0;}
 
 
