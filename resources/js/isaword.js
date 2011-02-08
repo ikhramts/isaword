@@ -229,4 +229,12 @@ $(document).ready(function(){
     $("a[href^='#']").click(function() {
         highlightAnchoredDiv($(this).attr('href'));
     });
+    
+    //Add facebook Like button.
+    var likeHtml = '<iframe ' +
+        'src="http://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fisaword.com%2F&amp;layout=button_count&amp;show_faces=false&amp;width=100&amp;action=like&amp;colorscheme=light&amp;height=21" ' +
+        'scrolling="no" frameborder="0" ' + 
+        'style="border:none; overflow:hidden; width:210px; height:21px; vertical-align: -6px; margin-left: 35px;" ' +
+        'allowTransparency="true"></iframe>'
+    $('.nav').append(likeHtml);
 });
