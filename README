@@ -1,6 +1,10 @@
     IsAWord SERVER
     ==============
 
+NOTE (2019): Most of the links below are dead.
+
+================================================================================================
+
 IsAWord is an experiment in writing a website using C++ and asynchronous webserver 
 that comes with libevent library.  The website is deployed at http://isaword.com/, and
 is described in more detail in my blog post at 
